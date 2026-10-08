@@ -135,8 +135,11 @@ def artist_title_from_filename(src) -> tuple[str, str]:
     if not isinstance(src, str):
         return "", ""
     _, _, rest = Path(src).stem.partition("_")
-    artist, _, title = rest.partition("-")
-    return split_camel(artist), split_camel(title)
+    parts = rest.split("-")
+    # Hyphenated first names: 'Jean-PaulRiopelle-Pavane' -> artist 'Jean-Paul Riopelle'
+    if len(parts) >= 3 and not re.search(r"[a-z][A-Z]", parts[0]) and re.match(r"[A-Z][a-z]+[A-Z]", parts[1]):
+        parts = [parts[0] + "-" + parts[1]] + parts[2:]
+    return split_camel(parts[0]), split_camel("-".join(parts[1:]))
 
 
 def text(v) -> str:
