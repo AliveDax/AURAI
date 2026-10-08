@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.pytest_cache/
+*.egg-info/
+
+# Data and generated artifacts (large / licensed: do not commit)
+data/emoart/*
+!data/emoart/.gitkeep
+!data/emoart/README.md
+data/cache/*
+!data/cache/.gitkeep
+reports/*
+!reports/.gitkeep
+.DS_Store
