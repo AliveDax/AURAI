@@ -15,6 +15,7 @@ import argparse
 import json
 import re
 import time
+import unicodedata
 from pathlib import Path
 
 import pandas as pd
@@ -25,11 +26,28 @@ from artrec.config import CACHE_DIR, EMOART_DIR, REPORTS_DIR
 from artrec.dimensions import parse_dimensions
 
 API = "https://collectionapi.metmuseum.org/public/collection/v1"
+SEARCH = "https://collectionapi.metmuseum.org/public/collection/v1.1/search"  # v1/search retired 2026-10-01
+MAX_ARTIST_OBJECTS = 300  # cap per artist for the artist-search fallback
 HTTP_CACHE = CACHE_DIR / "met_http_cache.json"
 
 
 def norm(s: str) -> str:
-    return re.sub(r"[^a-z0-9 ]", "", str(s).lower()).strip()
+    s = unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9 ]", "", s.lower()).strip()
+
+
+def compact(s: str) -> str:
+    """Titles from EmoArt file names lose the spaces before lower-case words
+    ('Snowat Ishinomaki'), so compare titles with all spaces removed."""
+    return norm(s).replace(" ", "")
+
+
+def same_title(ours: str, theirs: str) -> bool:
+    a, b = compact(ours), compact(theirs)
+    if not a or not b:
+        return False
+    # Met titles often add a series name: "Snow at X, from the series Y"
+    return a == b or (len(a) >= 8 and b.startswith(a))
 
 
 class Met:
@@ -42,7 +60,11 @@ class Met:
             return self.cache[url]
         time.sleep(self.delay)  # be polite to a free public API
         r = requests.get(url, timeout=20)
-        data = r.json() if r.ok else None
+        if r.status_code == 404:  # a real "no such object": safe to cache
+            self.cache[url] = None
+            return None
+        r.raise_for_status()  # don't cache outages or retired endpoints as "no match"
+        data = r.json()
         self.cache[url] = data
         return data
 
@@ -50,13 +72,26 @@ class Met:
         HTTP_CACHE.parent.mkdir(parents=True, exist_ok=True)
         HTTP_CACHE.write_text(json.dumps(self.cache))
 
+    def search(self, query: str, field: str, max_ids: int = 500) -> list[int]:
+        ids: list[int] = []
+        while len(ids) < max_ids:
+            res = self.get(f"{SEARCH}?hasImages=true&{field}=true&offset={len(ids)}&limit=500"
+                           f"&q={requests.utils.quote(query)}") or {}
+            page = res.get("objectIDs") or []
+            ids += page
+            if not page or len(ids) >= (res.get("total") or 0):
+                break
+        return ids[:max_ids]
+
     def find_size(self, title: str, artist: str) -> tuple[float, float, int] | None:
-        res = self.get(f"{API}/search?hasImages=true&title=true&q={requests.utils.quote(title)}")
-        for oid in (res or {}).get("objectIDs") or []:
+        surname = norm(artist).split()[-1] if norm(artist) else ""
+        candidates = self.search(title, "title")
+        if surname:  # titles from file names are often too garbled for the title search
+            candidates += self.search(surname, "artistOrCulture", MAX_ARTIST_OBJECTS)
+        for oid in dict.fromkeys(candidates):
             obj = self.get(f"{API}/objects/{oid}")
-            if not obj or norm(obj.get("title")) != norm(title):
+            if not obj or not same_title(title, obj.get("title", "")):
                 continue
-            surname = norm(artist).split()[-1] if norm(artist) else ""
             if surname and surname not in norm(obj.get("artistDisplayName", "")):
                 continue
             for m in obj.get("measurements") or []:
