@@ -19,13 +19,13 @@ import argparse
 
 import numpy as np
 import pandas as pd
-from PIL import Image
+from PIL import Image, ImageOps
 
 from artrec.catalog import Catalog
 from artrec.color import color_present, parse_color, preferred_color_score
 from artrec.config import REPORTS_DIR, ROOMS_DIR, SETTINGS
 from artrec.measure import a4_mask, find_a4, homography_from_a4, measure_box
-from artrec.room import analyze_room, box_iou
+from artrec.room import analyze_room, box_iou, load_photo
 
 TEST_COLORS = ["red", "orange", "mustard", "green", "sage", "teal", "blue", "navy", "purple", "pink", "brown", "beige"]
 
@@ -57,17 +57,20 @@ def eval_space(use_segmenter: bool) -> pd.DataFrame:
         seg = WallSegmenter()
     rows = []
     for r in pd.read_csv(ann_path).itertuples(index=False):
-        img = np.asarray(Image.open(ROOMS_DIR / r.file).convert("RGB"))
+        img = load_photo(ROOMS_DIR / r.file)
+        # Boxes are annotated on the full-size upright photo; load_photo downscales
+        s = img.shape[1] / ImageOps.exif_transpose(Image.open(ROOMS_DIR / r.file)).width
         corners = find_a4(img)
         exclude = a4_mask(corners, img.shape[:2]) if corners is not None else None
         room = analyze_room(img, SETTINGS.color, seg, exclude_mask=exclude)
-        true_box = (int(r.x), int(r.y), int(r.w), int(r.h))
+        true_box = tuple(int(round(v * s)) for v in (r.x, r.y, r.w, r.h))
         row = {"file": r.file, "detected": room.space_box is not None,
                "iou": box_iou(room.space_box, true_box) if room.space_box else 0.0}
         if room.space_box:
             x, y, w, h = room.space_box
             cx, cy = x + w / 2, y + h / 2
-            row["centre_inside_true_box"] = (r.x <= cx <= r.x + r.w) and (r.y <= cy <= r.y + r.h)
+            tx, ty, tw, th = true_box
+            row["centre_inside_true_box"] = (tx <= cx <= tx + tw) and (ty <= cy <= ty + th)
         row["a4_found"] = corners is not None
         if corners is not None and pd.notna(r.true_width_cm):
             m = measure_box(homography_from_a4(corners), true_box)

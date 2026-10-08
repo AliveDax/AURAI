@@ -18,6 +18,10 @@ CATALOG_PARQUET = CACHE_DIR / "catalog.parquet"
 EMBEDDINGS_NPY = CACHE_DIR / "image_embeddings.npy"
 PALETTES_NPZ = CACHE_DIR / "palettes.npz"
 
+# --- Room photos -------------------------------------------------------------
+# Phone photos are 12-48 MP; analysis doesn't need more than this on the long side.
+PHOTO_MAX_SIDE = 1600
+
 # --- CLIP -------------------------------------------------------------------
 CLIP_MODEL = "ViT-L-14-336"
 CLIP_PRETRAINED = "openai"

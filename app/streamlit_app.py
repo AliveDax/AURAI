@@ -5,11 +5,11 @@ from pathlib import Path
 import cv2
 import numpy as np
 import streamlit as st
-from PIL import Image
 
 from artrec.catalog import Catalog
 from artrec.config import CATALOG_PARQUET, ROOMS_DIR, ROOT, SETTINGS
 from artrec.recommender import Query, Recommender
+from artrec.room import load_photo
 
 LABELS = {
     "content": "Matches your description",
@@ -79,7 +79,7 @@ if upload is None and sample == "None":
     st.info("Upload a photo of the wall to get started. For measurements, tape an A4 sheet to the wall first.")
     st.stop()
 
-img = np.asarray(Image.open(upload if upload is not None else ROOMS_DIR / sample).convert("RGB"))
+img = load_photo(upload if upload is not None else ROOMS_DIR / sample)
 H, W = img.shape[:2]
 user_box = None
 if placement == "I'll choose the spot":

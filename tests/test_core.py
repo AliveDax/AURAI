@@ -8,7 +8,7 @@ from artrec.config import ColorConfig, FitConfig
 from artrec.dimensions import parse_dimensions
 from artrec.measure import find_a4, homography_from_a4, measure_box
 from artrec.prompts import mood_emotions, mood_is_negative
-from artrec.room import box_iou, heuristic_wall_mask, largest_rectangle
+from artrec.room import box_iou, heuristic_wall_mask, largest_rectangle, load_photo
 from artrec.scoring import aspect_score, combine, fill_score, size_filter
 
 CC = ColorConfig()
@@ -169,3 +169,17 @@ def test_size_filter_and_fill():
 def test_aspect_score_prefers_matching_orientation():
     s = aspect_score(np.array([0.7, 1.5]), 0.75, FitConfig())
     assert s[0] > s[1]
+
+
+def test_load_photo_applies_exif_rotation_and_downscales(tmp_path):
+    from PIL import Image
+    # Phones save the sensor image (here landscape) plus "rotate 90" in EXIF
+    raw = np.zeros((300, 400, 3), np.uint8)
+    raw[:, :200] = (255, 0, 0)  # left half red in the stored pixels
+    im = Image.fromarray(raw)
+    exif = im.getexif()
+    exif[0x0112] = 6  # Orientation: rotate 90 degrees clockwise for display
+    im.save(tmp_path / "phone.jpg", exif=exif.tobytes())
+    out = load_photo(tmp_path / "phone.jpg", max_side=200)
+    assert out.shape[:2] == (200, 150)                  # upright portrait, long side capped
+    assert out[10, 75, 0] > 200 and out[-10, 75, 0] < 50  # red half now on top

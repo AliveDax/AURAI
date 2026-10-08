@@ -24,6 +24,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from artrec.catalog import Catalog
 from artrec.config import REPORTS_DIR, ROOMS_DIR, ROOT, SETTINGS
 from artrec.recommender import Query, Recommender
+from artrec.room import load_photo
 
 CLIP_ONLY = {"content": 0.25, "surroundings": 0.15, "emotion": 0.25,
              "harmony": 0.0, "preferred_color": 0.0, "fit": 0.0}
@@ -80,7 +81,7 @@ def main():
     rooms = sorted(p for p in ROOMS_DIR.iterdir() if p.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"})
     cases, key = [], []
     for room_path in rooms:
-        room_img = np.asarray(Image.open(room_path).convert("RGB"))
+        room_img = load_photo(room_path)
         for mood in args.moods:
             case_id = f"{room_path.stem}__{mood}"
             q = Query(room_image=room_img, mood=mood, use_a4=False)

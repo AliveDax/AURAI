@@ -14,11 +14,21 @@ from dataclasses import dataclass
 
 import cv2
 import numpy as np
+from PIL import Image, ImageOps
 
 from .color import Palette, extract_palette
-from .config import SEGMENTATION_MODEL, ColorConfig
+from .config import PHOTO_MAX_SIDE, SEGMENTATION_MODEL, ColorConfig
 
 Box = tuple[int, int, int, int]  # x, y, w, h in pixels
+
+
+def load_photo(src, max_side: int = PHOTO_MAX_SIDE) -> np.ndarray:
+    """Open a room photo (path or file-like) as uint8 RGB, upright and downscaled.
+    Phones store photos unrotated plus an EXIF orientation flag; without
+    exif_transpose a portrait photo would be analysed lying on its side."""
+    img = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
+    img.thumbnail((max_side, max_side), Image.LANCZOS)
+    return np.asarray(img)
 
 
 # ---------------------------------------------------------------------------
