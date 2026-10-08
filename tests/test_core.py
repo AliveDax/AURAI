@@ -140,9 +140,9 @@ def test_a4_measurement_under_perspective():
     box = (int(sp[0, 0]), int(sp[0, 1]), int(sp[1, 0] - sp[0, 0]), int(sp[1, 1] - sp[0, 1]))
     m = measure_box(H, box)
     # The box is axis-aligned in the warped image, so it is only approximately the true
-    # rectangle; we still expect to be within ~10%.
-    assert m.width_cm == pytest.approx(100, rel=0.10)
-    assert m.height_cm == pytest.approx(60, rel=0.10)
+    # rectangle; with sub-pixel corners we expect to be within ~5%.
+    assert m.width_cm == pytest.approx(100, rel=0.05)
+    assert m.height_cm == pytest.approx(60, rel=0.05)
 
 
 # --- scoring --------------------------------------------------------------------

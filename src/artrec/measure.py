@@ -30,6 +30,61 @@ def order_corners(pts: np.ndarray) -> np.ndarray:
     return np.array([pts[np.argmin(s)], pts[np.argmin(d)], pts[np.argmax(s)], pts[np.argmax(d)]], np.float32)
 
 
+def _intersect(l1, l2) -> np.ndarray | None:
+    (p1, d1), (p2, d2) = l1, l2
+    A = np.array([d1, -d2]).T
+    if abs(np.linalg.det(A)) < 1e-6:
+        return None
+    s_, _ = np.linalg.solve(A, p2 - p1)
+    return p1 + s_ * d1
+
+
+def refine_corners(gray: np.ndarray, quad: np.ndarray, samples: int = 40, reach: float = 4.0) -> np.ndarray:
+    """Sub-pixel corners. Along each side of the rough quad, find where the brightness
+    crosses halfway between paper and wall (searching along the side's normal), fit a
+    line through those points and intersect neighbouring lines. The rough quad is only
+    pixel-accurate, and on a small sheet a 1 px corner error tilts the whole wall plane."""
+    g = gray.astype(np.float32)
+    q = quad.astype(np.float64)
+    centre = q.mean(0)
+    offs = np.linspace(-reach, reach, int(reach * 8) + 1)
+    lines = []
+    for i in range(4):
+        a, b = q[i], q[(i + 1) % 4]
+        d = (b - a) / np.linalg.norm(b - a)
+        n = np.array([-d[1], d[0]])
+        if n @ (centre - a) < 0:
+            n = -n  # normal points into the paper
+        pts = []
+        for t in np.linspace(0.15, 0.85, samples):
+            base = a + t * (b - a)
+            xy = (base[None, :] + offs[:, None] * n[None, :]).astype(np.float32)
+            prof = cv2.remap(g, xy[:, 0].reshape(1, -1), xy[:, 1].reshape(1, -1), cv2.INTER_LINEAR).ravel()
+            lo, hi = prof[:4].mean(), prof[-4:].mean()
+            if hi - lo < 15:  # no clear paper/wall step here
+                continue
+            mid = (lo + hi) / 2
+            k = np.flatnonzero((prof[:-1] < mid) & (prof[1:] >= mid))
+            if len(k) != 1:
+                continue
+            k = k[0]
+            f = (mid - prof[k]) / (prof[k + 1] - prof[k])
+            pts.append(base + (offs[k] + f * (offs[1] - offs[0])) * n)
+        if len(pts) < samples // 3:
+            return quad
+        vx, vy, x0, y0 = cv2.fitLine(np.array(pts, np.float32), cv2.DIST_HUBER, 0, 0.01, 0.01).ravel()
+        lines.append((np.array([x0, y0], np.float64), np.array([vx, vy], np.float64)))
+    out = []
+    for i in range(4):  # corner i is where side i-1 meets side i
+        c = _intersect(lines[i - 1], lines[i])
+        if c is None:
+            return quad
+        out.append(c)
+    out = np.array(out, np.float32)
+    # sanity: refinement should only nudge the corners
+    return out if np.abs(out - quad).max() < reach + 2 else quad
+
+
 def find_a4(image_rgb: np.ndarray, ratio_tol: float = 0.18) -> np.ndarray | None:
     """Find a bright, low-saturation quadrilateral with A4 proportions.
     Returns ordered corners (4, 2) or None."""
@@ -68,7 +123,7 @@ def find_a4(image_rgb: np.ndarray, ratio_tol: float = 0.18) -> np.ndarray | None
             score = area * fill * (1 - abs(ratio - A4_RATIO) / A4_RATIO)
             if score > best_score:
                 best, best_score = q, score
-    return best
+    return refine_corners(gray, best) if best is not None else None
 
 
 def a4_mask(corners: np.ndarray, shape: tuple[int, int]) -> np.ndarray:
