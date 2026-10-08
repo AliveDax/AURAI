@@ -26,6 +26,7 @@ from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from .config import CACHE_DIR, ROOT
+from .preview import place_artwork
 from .recommender import EXPLANATION_LABELS, Query, Recommender
 from .room import load_photo
 
@@ -116,6 +117,16 @@ def create_app(recommender: Recommender | None = None, load=None) -> FastAPI:
             res = rec.recommend(q, top_n=max(1, min(top_n, 20)))
 
         m = res.measurement
+
+        def placement(r):
+            if res.room.space_box is None:
+                return None
+            row = r.row
+            aspect = (row.get("img_width_px") or 1) / (row.get("img_height_px") or 1)
+            p = place_artwork(res.room.space_box, _num(row.get("width_cm")), _num(row.get("height_cm")),
+                              aspect, m, res.a4_corners)
+            return {"quad": p.quad, "true_size": p.true_size}
+
         return {
             "photo": {"width": img.shape[1], "height": img.shape[0]},
             "space": {"box": _box(res.room.space_box), "source": res.room.space_source},
@@ -139,6 +150,7 @@ def create_app(recommender: Recommender | None = None, load=None) -> FastAPI:
                     "size_checked": r.details.get("size_checked", False),
                     "palette": r.details["palette_hex"],
                     "image_url": f"/api/art/{quote(r.art_id)}.jpg",  # ids contain spaces
+                    "placement": placement(r),
                     "score": round(r.score, 3),
                     "reasons": [{"key": k, "label": EXPLANATION_LABELS.get(k, k), "value": round(v, 3)}
                                 for k, v in sorted(r.contributions.items(), key=lambda kv: -kv[1])],

@@ -231,6 +231,7 @@ function render(d) {
   svg.innerHTML = shapes;
   // The overlay must match the contained image, so size the wrapper to the photo's aspect ratio
   $("result-photo").parentElement.style.aspectRatio = `${d.photo.width} / ${d.photo.height}`;
+  view.data = d;
 
   const sum = $("summary");
   sum.replaceChildren();
@@ -274,6 +275,13 @@ function render(d) {
       if (d.measurement) tag("not size-checked", "warn");
     }
     card.querySelector(".palette").append(...r.palette.map((h) => el("i", { style: `background:${h}` })));
+    const viewBtn = card.querySelector(".view-on-wall");
+    viewBtn.hidden = !r.placement;
+    viewBtn.addEventListener("click", () => {
+      selectArt(r.rank - 1);
+      setView("preview");
+      $("stage").scrollIntoView({ behavior: "smooth", block: "center" });
+    });
     const reasons = card.querySelector(".reasons");
     for (const x of r.reasons) {
       const label = x.value >= 0 ? x.label : `${x.label} (−)`;
@@ -281,7 +289,94 @@ function render(d) {
     }
     list.append(card);
   }
+
+  // Strip of picks under the preview
+  const strip = $("strip");
+  strip.replaceChildren();
+  d.recommendations.forEach((r, i) => {
+    const b = el("button", { type: "button", role: "option", title: `${r.title} — ${r.artist}` },
+      [el("img", { src: r.image_url, alt: r.title, loading: "lazy" }), el("span", { textContent: String(r.rank).padStart(2, "0") })]);
+    b.addEventListener("click", () => { selectArt(i); setView("preview"); });
+    strip.append(b);
+  });
+  const canPreview = d.recommendations.some((r) => r.placement);
+  strip.hidden = !canPreview;
+  $("view-mode").hidden = !canPreview;
+  if (d.recommendations.length) selectArt(0);
+  setView(canPreview ? "preview" : "analysis");
 }
+
+// ---------------------------------------------------------------- see it on your wall
+// Maps the artwork onto its four corners in the photo with a CSS perspective transform.
+const view = { data: null, index: 0, mode: "preview" };
+
+function adj(m) { // adjugate of a 3x3 matrix
+  return [m[4] * m[8] - m[5] * m[7], m[2] * m[7] - m[1] * m[8], m[1] * m[5] - m[2] * m[4],
+          m[5] * m[6] - m[3] * m[8], m[0] * m[8] - m[2] * m[6], m[2] * m[3] - m[0] * m[5],
+          m[3] * m[7] - m[4] * m[6], m[1] * m[6] - m[0] * m[7], m[0] * m[4] - m[1] * m[3]];
+}
+function mul(a, b) {
+  const c = Array(9);
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+    c[3 * i + j] = a[3 * i] * b[j] + a[3 * i + 1] * b[3 + j] + a[3 * i + 2] * b[6 + j];
+  }
+  return c;
+}
+function basis(p) { // projective map taking the unit points to p[0..3]
+  const m = [p[0][0], p[1][0], p[2][0], p[0][1], p[1][1], p[2][1], 1, 1, 1];
+  const a = adj(m);
+  const v = [a[0] * p[3][0] + a[1] * p[3][1] + a[2], a[3] * p[3][0] + a[4] * p[3][1] + a[5], a[6] * p[3][0] + a[7] * p[3][1] + a[8]];
+  return mul(m, [v[0], 0, 0, 0, v[1], 0, 0, 0, v[2]]);
+}
+function matrix3d(src, dst) {
+  const t = mul(basis(dst), adj(basis(src)));
+  const n = t.map((x) => x / t[8]);
+  return `matrix3d(${n[0]},${n[3]},0,${n[6]},${n[1]},${n[4]},0,${n[7]},0,0,1,0,${n[2]},${n[5]},0,${n[8]})`;
+}
+
+function placeArt() {
+  const d = view.data;
+  const r = d?.recommendations[view.index];
+  const placed = $("placed");
+  const chip = $("scale-chip");
+  if (!r?.placement || view.mode !== "preview") { placed.hidden = true; chip.hidden = true; return; }
+  const k = $("stage").clientWidth / d.photo.width;
+  const q = r.placement.quad; // TL, TR, BR, BL
+  const dst = [q[0], q[1], q[3], q[2]].map(([x, y]) => [x * k, y * k]);
+  const src = [[0, 0], [100, 0], [0, 100], [100, 100]];
+  placed.style.transform = matrix3d(src, dst);
+  placed.hidden = false;
+  chip.hidden = false;
+  chip.className = `scale-chip ${r.placement.true_size ? "true" : "approx"}`;
+  chip.textContent = r.placement.true_size ? `True size · ${cm(r.width_cm, r.height_cm)}` : "Approximate size";
+}
+
+function selectArt(i) {
+  const d = view.data;
+  view.index = i;
+  const r = d.recommendations[i];
+  const img = $("placed").querySelector("img");
+  $("placed").classList.add("loading");
+  img.onload = () => $("placed").classList.remove("loading");
+  img.src = r.image_url;
+  img.alt = `${r.title} on your wall`;
+  $("stage-name").textContent = `preview_${String(r.rank).padStart(2, "0")}_${slug(r.title)}`;
+  $("strip").querySelectorAll("button").forEach((b, j) => b.setAttribute("aria-selected", String(j === i)));
+  placeArt();
+}
+
+function setView(mode) {
+  view.mode = mode;
+  $("view-mode").querySelectorAll("button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.value === mode)));
+  $("overlay").hidden = mode !== "analysis";
+  $("legend").hidden = mode !== "analysis";
+  if (mode === "analysis") $("stage-name").textContent = "analysis.jpg";
+  else if (view.data?.recommendations.length) $("stage-name").textContent = `preview_${String(view.index + 1).padStart(2, "0")}_${slug(view.data.recommendations[view.index].title)}`;
+  placeArt();
+}
+segmented("view-mode", setView);
+window.addEventListener("resize", () => view.data && placeArt());
+new ResizeObserver(() => view.data && placeArt()).observe($("stage"));
 
 // ---------------------------------------------------------------- install
 if ("serviceWorker" in navigator) {

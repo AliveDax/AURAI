@@ -139,12 +139,21 @@
     <!-- Step 3: results -->
     <section id="step-results" class="step" hidden>
       <div class="window">
-        <div class="titlebar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>analysis.jpg</span></div>
-        <div class="photo-wrap result-photo">
-          <img id="result-photo" alt="Your wall with the chosen space marked">
-          <svg id="overlay" class="overlay" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="titlebar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span id="stage-name">preview.jpg</span></div>
+        <div class="photo-wrap result-photo" id="stage">
+          <img id="result-photo" alt="Your wall">
+          <div id="placed" class="placed" hidden><img alt=""></div>
+          <svg id="overlay" class="overlay" preserveAspectRatio="none" aria-hidden="true" hidden></svg>
+          <span id="scale-chip" class="scale-chip" hidden></span>
         </div>
-        <div class="legend-row" aria-hidden="true"><span class="key space"></span>space <span class="key a4"></span>A4 sheet</div>
+        <div class="stage-bar">
+          <div class="segmented mini" role="radiogroup" id="view-mode" aria-label="View">
+            <button type="button" role="radio" aria-checked="true" data-value="preview">Preview</button>
+            <button type="button" role="radio" aria-checked="false" data-value="analysis">Analysis</button>
+          </div>
+          <div class="legend-row" id="legend" aria-hidden="true" hidden><span class="key space"></span>space <span class="key a4"></span>A4</div>
+        </div>
+        <div class="strip" id="strip" role="listbox" aria-label="Choose an artwork to preview"></div>
       </div>
 
       <dl id="summary" class="summary"></dl>
@@ -177,6 +186,10 @@
         <p class="artist"></p>
         <div class="tags"></div>
         <div class="palette" aria-hidden="true"></div>
+        <button type="button" class="btn chrome small view-on-wall">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="1"/><rect x="8" y="8" width="8" height="8"/></svg>
+          View on your wall
+        </button>
         <details>
           <summary>Why this one</summary>
           <ul class="reasons"></ul>

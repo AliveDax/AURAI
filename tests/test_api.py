@@ -33,7 +33,8 @@ def test_recommend_returns_explained_results(client):
     d = r.json()
     assert len(d["recommendations"]) == 5
     first = d["recommendations"][0]
-    assert {"title", "artist", "image_url", "reasons", "palette", "size_checked"} <= set(first)
+    assert {"title", "artist", "image_url", "reasons", "palette", "size_checked", "placement"} <= set(first)
+    assert len(first["placement"]["quad"]) == 4 and first["placement"]["true_size"] is False  # no measurement
     assert all("label" in x and "value" in x for x in first["reasons"])
     assert d["photo"] == {"width": 400, "height": 300}
     assert d["space"]["box"] is not None
@@ -46,6 +47,7 @@ def test_manual_size_and_user_box(client):
     assert d["space"]["source"] == "user" and d["space"]["box"] == [120, 30, 160, 150]
     for rec in d["recommendations"]:
         assert rec["width_cm"] <= 50 and rec["height_cm"] <= 50 and rec["size_checked"]
+        assert rec["placement"]["true_size"]  # known size + measured space -> drawn to scale
 
 
 @pytest.mark.parametrize("form,status", [

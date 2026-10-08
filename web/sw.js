@@ -1,6 +1,6 @@
 // Caches the app shell so it opens instantly and can be installed. Recommendations
 // always need the server, so /api/ requests are never cached here.
-const CACHE = "artwall-v2";
+const CACHE = "artwall-v3";
 const SHELL = ["./", "index.html", "style.css", "app.js", "manifest.webmanifest", "icon.svg", "icon-180.png", "icon-512.png"];
 
 self.addEventListener("install", (e) => {
