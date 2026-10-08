@@ -26,6 +26,7 @@ from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from .config import CACHE_DIR, ROOT
+from .measure import order_corners, refine_corners
 from .preview import place_artwork
 from .recommender import EXPLANATION_LABELS, Query, Recommender
 from .room import load_photo
@@ -60,6 +61,25 @@ def _parse_box(text: str | None, shape: tuple[int, int]) -> tuple[int, int, int,
     return int(fx * W), int(fy * H), max(1, int(fw * W)), max(1, int(fh * H))
 
 
+def _parse_a4(text: str | None, img: np.ndarray) -> np.ndarray | None:
+    """Corners of the A4 sheet the user tapped: 'x1,y1,...,x4,y4' as fractions of the photo.
+    Snapped to the sheet's edges when they can be found."""
+    if not text:
+        return None
+    try:
+        v = [float(t) for t in text.split(",")]
+    except ValueError:
+        raise HTTPException(422, "a4 must be 8 numbers") from None
+    if len(v) != 8 or not all(0 <= t <= 1 for t in v):
+        raise HTTPException(422, "a4 must be 4 corners as fractions of the photo")
+    H, W = img.shape[:2]
+    q = order_corners(np.array(v, np.float32).reshape(4, 2) * np.float32([W, H]))
+    import cv2
+    if cv2.contourArea(q) < 0.0002 * W * H or not cv2.isContourConvex(q.reshape(-1, 1, 2)):
+        raise HTTPException(422, "Those corners don't make a sheet. Tap the 4 corners of the A4 paper.")
+    return refine_corners(cv2.cvtColor(img, cv2.COLOR_RGB2GRAY), q)
+
+
 def create_app(recommender: Recommender | None = None, load=None) -> FastAPI:
     """`recommender`: a ready Recommender (tests), or None to build the real one
     lazily via `load()` on the first request."""
@@ -89,6 +109,7 @@ def create_app(recommender: Recommender | None = None, load=None) -> FastAPI:
         width_cm: float | None = Form(None),
         height_cm: float | None = Form(None),
         box: str = Form(""),
+        a4: str = Form(""),
         top_n: int = Form(5),
     ):
         data = photo.file.read(MAX_UPLOAD_BYTES + 1)
@@ -110,7 +131,7 @@ def create_app(recommender: Recommender | None = None, load=None) -> FastAPI:
             room_image=img, mood=mood.strip() or None, description=description.strip() or None,
             preferred_color=colour.strip() or None, user_box=_parse_box(box, img.shape[:2]),
             orientation=orientation if orientation in ORIENTATIONS else None,
-            manual_size_cm=manual, use_a4=size_mode == "a4",
+            manual_size_cm=manual, use_a4=size_mode == "a4", a4_corners=_parse_a4(a4, img),
         )
         rec = get_rec()
         with lock:
@@ -125,13 +146,15 @@ def create_app(recommender: Recommender | None = None, load=None) -> FastAPI:
             aspect = (row.get("img_width_px") or 1) / (row.get("img_height_px") or 1)
             p = place_artwork(res.room.space_box, _num(row.get("width_cm")), _num(row.get("height_cm")),
                               aspect, m, res.a4_corners)
-            return {"quad": p.quad, "true_size": p.true_size}
+            return {"quad": p.quad, "true_size": p.true_size,
+                    "size_cm": [round(v, 1) for v in p.size_cm] if p.size_cm else None}
 
         return {
             "photo": {"width": img.shape[1], "height": img.shape[0]},
             "space": {"box": _box(res.room.space_box), "source": res.room.space_source},
             "a4_corners": res.a4_corners.round(1).tolist() if res.a4_corners is not None else None,
             "a4_requested": size_mode == "a4",
+            "a4_source": ("marked" if a4 else "detected") if res.a4_corners is not None else None,
             "measurement": {"width_cm": round(m.width_cm, 1), "height_cm": round(m.height_cm, 1),
                             "source": m.source} if m else None,
             "room_style": [{"style": k, "p": v} for k, v in list(res.room_style.items())[:3]],

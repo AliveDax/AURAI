@@ -25,6 +25,7 @@ FILL = 0.7  # middle of the 60-75% "ideal fill" band in FitConfig
 class Placement:
     quad: list[list[float]]  # TL, TR, BR, BL in image pixels
     true_size: bool
+    size_cm: tuple[float, float] | None = None  # (w, h) as shown on the wall, if the space was measured
 
 
 def _rect(cx: float, cy: float, w: float, h: float) -> np.ndarray:
@@ -44,15 +45,20 @@ def place_artwork(space: Box, art_w_cm: float | None, art_h_cm: float | None, ar
         centre_cm = cv2.perspectiveTransform(box, H).reshape(4, 2).mean(0)
         quad_cm = _rect(centre_cm[0], centre_cm[1], art_w_cm, art_h_cm).astype(np.float32).reshape(-1, 1, 2)
         quad = cv2.perspectiveTransform(quad_cm, np.linalg.inv(H)).reshape(4, 2)
-        return Placement(np.round(quad, 1).tolist(), True)
+        return Placement(np.round(quad, 1).tolist(), True, (art_w_cm, art_h_cm))
 
     if measurement and sized:  # entered by hand: the space box is the measured area
         sx, sy = w / measurement.width_cm, h / measurement.height_cm
-        return Placement(np.round(_rect(cx, cy, art_w_cm * sx, art_h_cm * sy), 1).tolist(), True)
+        return Placement(np.round(_rect(cx, cy, art_w_cm * sx, art_h_cm * sy), 1).tolist(), True,
+                         (art_w_cm, art_h_cm))
 
+    # Size unknown (or space not measured): fill FILL of the space with the artwork's shape
     bw, bh = w * FILL, h * FILL
     if bw / bh > art_aspect:
         bw = bh * art_aspect
     else:
         bh = bw / art_aspect
-    return Placement(np.round(_rect(cx, cy, bw, bh), 1).tolist(), False)
+    size_cm = None
+    if measurement:  # the size it's shown at = a suggested print size, to the nearest 5 cm
+        size_cm = (5 * round(bw / w * measurement.width_cm / 5), 5 * round(bh / h * measurement.height_cm / 5))
+    return Placement(np.round(_rect(cx, cy, bw, bh), 1).tolist(), False, size_cm)

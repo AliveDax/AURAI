@@ -214,6 +214,33 @@ h1 em {
 .btn.small { min-height: 40px; font-size: 14px; padding: 0 16px; align-self: flex-start; }
 .btn.small svg { width: 16px; height: 16px; }
 
+.overlay.preview-mode .ov-space { display: none; }
+.overlay.preview-mode .ov-a4 { fill: none; stroke-dasharray: 10 6; }
+.mark-dots i {
+  position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%;
+  border: 2px solid #fff; background: var(--pink); box-shadow: 0 0 0 2px rgba(0,0,0,.35);
+}
+.mark-hint {
+  position: absolute; left: 50%; top: 10px; transform: translateX(-50%); white-space: nowrap;
+  font: 10px/1 var(--pixel); letter-spacing: .05em; text-transform: uppercase; color: #fff;
+  background: var(--pink); padding: 8px 10px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.3);
+}
+.mark-cancel { display: none; }
+#stage.marking { cursor: crosshair; outline: 3px solid var(--pink); outline-offset: -3px; }
+#stage.marking .mark-cancel {
+  display: grid; place-items: center; position: absolute; right: 8px; top: 8px; width: 32px; height: 32px;
+  border: 0; border-radius: 50%; background: rgba(14,15,18,.75); color: #fff; font-size: 14px; cursor: pointer;
+}
+#stage.marking .placed, #stage.marking .scale-chip { display: none; }
+.a4-status { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.a4-status b { font-weight: 600; }
+.a4-status .ok { color: #1f9d5c; }
+.a4-status .bad { color: var(--pink); }
+.link-btn {
+  border: 0; background: none; padding: 4px 0; margin-left: 4px; font: inherit; font-weight: 600;
+  color: var(--blue); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+
 /* ---------------------------------------------------------------- form */
 form { display: flex; flex-direction: column; gap: 22px; padding: 4px 0 90px; }
 fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }

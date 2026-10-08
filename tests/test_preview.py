@@ -24,6 +24,7 @@ def test_unknown_size_fills_space_with_artwork_aspect():
     assert not p.true_size
     w, h = size_of(p.quad)
     assert np.isclose(h, 200 * FILL) and np.isclose(w / h, 0.5)
+    assert p.size_cm == (20, 35)  # shown size in cm (space 100 x 50 cm), rounded to 5 cm
 
 
 def test_a4_placement_round_trips_through_the_homography():

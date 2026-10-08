@@ -173,7 +173,11 @@ $("go").addEventListener("click", async () => {
     const b = state.box;
     fd.append("box", [b.x, b.y, b.w, b.h].map((v) => v.toFixed(4)).join(","));
   }
+  await runSearch(fd);
+});
 
+async function runSearch(fd) {
+  state.lastForm = fd;
   $("go").disabled = true;
   $("loading").hidden = false;
   setStatus("busy");
@@ -185,15 +189,17 @@ $("go").addEventListener("click", async () => {
     if (!r.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Something went wrong. Please try again.");
     render(data);
     show("step-results");
+    return true;
   } catch (err) {
     showError(err.message === "Failed to fetch" ? "Can't reach the server. Check your connection." : err.message);
+    return false;
   } finally {
     clearTimeout(slow);
     setStatus();
     $("loading").hidden = true;
     $("go").disabled = false;
   }
-});
+}
 
 function setStatus(mode) {
   $("status").textContent = mode === "busy" ? "WORKING" : "READY";
@@ -225,9 +231,9 @@ function render(d) {
   let shapes = "";
   if (d.space.box) {
     const [x, y, w, h] = d.space.box;
-    shapes += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(47,91,255,.14)" stroke="#2f5bff" stroke-width="${t}"/>`;
+    shapes += `<rect class="ov-space" x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(47,91,255,.14)" stroke="#2f5bff" stroke-width="${t}"/>`;
   }
-  if (d.a4_corners) shapes += `<polygon points="${d.a4_corners.map((p) => p.join(",")).join(" ")}" fill="none" stroke="#ff3d7f" stroke-width="${t}"/>`;
+  if (d.a4_corners) shapes += `<polygon class="ov-a4" points="${d.a4_corners.map((p) => p.join(",")).join(" ")}" fill="rgba(255,61,127,.18)" stroke="#ff3d7f" stroke-width="${t}"/>`;
   svg.innerHTML = shapes;
   // The overlay must match the contained image, so size the wrapper to the photo's aspect ratio
   $("result-photo").parentElement.style.aspectRatio = `${d.photo.width} / ${d.photo.height}`;
@@ -238,11 +244,21 @@ function render(d) {
   const row = (label, content) => sum.append(el("dt", { textContent: label }), el("dd", {}, [content]));
   if (d.measurement) row("Space", el("span", { textContent: `${cm(d.measurement.width_cm, d.measurement.height_cm)} ${d.measurement.source === "a4" ? "· from A4" : "· entered"}` }));
   if (d.room_style.length) row("Room", el("span", { textContent: d.room_style.slice(0, 1).map((s) => `${s.style} ${Math.round(s.p * 100)}%`).join(" · ") }));
+  const a4 = el("span", { className: "a4-status" });
+  if (d.a4_corners) {
+    a4.append(el("b", { className: "ok", textContent: d.a4_source === "marked" ? "✓ Marked" : "✓ Found" }), " · outlined in pink");
+  } else {
+    a4.append(el("b", { className: "bad", textContent: "✗ Not found" }));
+  }
+  const mark = el("button", { type: "button", className: "link-btn", textContent: d.a4_corners ? "Re-mark" : "Tap its corners" });
+  mark.addEventListener("click", startA4Marking);
+  a4.append(" ", mark);
+  row("A4 sheet", a4);
   row("Wall", swatches(d.wall_colours));
   if (d.decor_colours.length) row("Decor", swatches(d.decor_colours));
 
   const notes = [];
-  if (d.a4_requested && !d.measurement) notes.push("No A4 sheet found in the photo, so sizes weren't checked. You can enter the size of the space instead.");
+  if (d.a4_requested && !d.measurement) notes.push("We couldn't find the A4 sheet, so sizes weren't checked. Tap its corners on the photo, or enter the size of the space.");
   if (d.space.source === "none") notes.push("Couldn't find a clear area on the wall. Try marking the spot yourself.");
   if (d.measurement && d.n_size_unknown) notes.push(`${d.n_candidates - d.n_size_unknown} artworks are known to fit; ${d.n_size_unknown} more have no recorded size, so only their shape was checked.`);
   if (d.message) notes.push(d.message);
@@ -270,9 +286,11 @@ function render(d) {
     if (r.width_cm && r.height_cm) {
       tag(cm(r.width_cm, r.height_cm));
       if (d.measurement) tag("✓ fits", "ok");
+    } else if (r.placement?.size_cm) {
+      tag(`print ≈ ${cm(...r.placement.size_cm)}`, "ok");
+      tag("original size unknown");
     } else {
-      tag("size ?");
-      if (d.measurement) tag("not size-checked", "warn");
+      tag("size unknown");
     }
     card.querySelector(".palette").append(...r.palette.map((h) => el("i", { style: `background:${h}` })));
     const viewBtn = card.querySelector(".view-on-wall");
@@ -348,7 +366,9 @@ function placeArt() {
   placed.hidden = false;
   chip.hidden = false;
   chip.className = `scale-chip ${r.placement.true_size ? "true" : "approx"}`;
-  chip.textContent = r.placement.true_size ? `True size · ${cm(r.width_cm, r.height_cm)}` : "Approximate size";
+  chip.textContent = r.placement.true_size ? `True size · ${cm(r.width_cm, r.height_cm)}`
+    : r.placement.size_cm ? `Shown at ${cm(...r.placement.size_cm)} · print size`
+    : "Approx. size · add an A4 sheet to see cm";
 }
 
 function selectArt(i) {
@@ -368,13 +388,50 @@ function selectArt(i) {
 function setView(mode) {
   view.mode = mode;
   $("view-mode").querySelectorAll("button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.value === mode)));
-  $("overlay").hidden = mode !== "analysis";
+  $("overlay").removeAttribute("hidden"); // SVG elements have no .hidden property
+  $("overlay").classList.toggle("preview-mode", mode !== "analysis");
   $("legend").hidden = mode !== "analysis";
   if (mode === "analysis") $("stage-name").textContent = "analysis.jpg";
   else if (view.data?.recommendations.length) $("stage-name").textContent = `preview_${String(view.index + 1).padStart(2, "0")}_${slug(view.data.recommendations[view.index].title)}`;
   placeArt();
 }
 segmented("view-mode", setView);
+
+// ---------------------------------------------------------------- marking the A4 sheet by hand
+const a4mark = { points: [] };
+function startA4Marking() {
+  if (!state.lastForm) return;
+  a4mark.points = [];
+  setView("analysis");
+  $("stage").classList.add("marking");
+  $("mark-hint").hidden = false;
+  $("mark-hint").textContent = "Tap the 4 corners of the A4 sheet";
+  $("mark-dots").replaceChildren();
+  $("stage").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+function stopA4Marking() {
+  $("stage").classList.remove("marking");
+  $("mark-hint").hidden = true;
+  $("mark-dots").replaceChildren();
+}
+$("stage").addEventListener("click", async (e) => {
+  if (!$("stage").classList.contains("marking")) return;
+  const r = $("stage").getBoundingClientRect();
+  const fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+  if (fx < 0 || fx > 1 || fy < 0 || fy > 1) return;
+  a4mark.points.push([fx, fy]);
+  $("mark-dots").append(el("i", { style: `left:${fx * 100}%;top:${fy * 100}%` }));
+  const left = 4 - a4mark.points.length;
+  $("mark-hint").textContent = left ? `${left} more corner${left > 1 ? "s" : ""}` : "Measuring…";
+  if (left) return;
+  const fd = new FormData();
+  for (const [k, v] of state.lastForm.entries()) if (k !== "a4" && k !== "size_mode") fd.append(k, v);
+  fd.append("size_mode", "a4");
+  fd.append("a4", a4mark.points.flat().map((v) => v.toFixed(4)).join(","));
+  stopA4Marking();
+  if (await runSearch(fd)) setView("preview");
+});
+$("mark-cancel").addEventListener("click", (e) => { e.stopPropagation(); stopA4Marking(); });
 window.addEventListener("resize", () => view.data && placeArt());
 new ResizeObserver(() => view.data && placeArt()).observe($("stage"));
 

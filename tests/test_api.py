@@ -67,3 +67,16 @@ def test_unreadable_photo(client):
 
 def test_unknown_artwork_image_is_404(client):
     assert client.get("/api/art/nope.jpg").status_code == 404
+
+
+def test_marked_a4_corners_are_used(client):
+    # a 21 x 29.7 cm sheet tapped at 40 x 56.6 px (~1.9 px/cm) in the 400 x 300 photo
+    r = post(client, size_mode="a4", a4="0.70,0.10,0.80,0.10,0.80,0.2887,0.70,0.2887")
+    d = r.json()
+    assert d["a4_source"] == "marked" and d["measurement"]["source"] == "a4"
+    first = d["recommendations"][0]["placement"]
+    assert first["size_cm"] is not None  # shown size known once the space is measured
+
+
+def test_bad_a4_corners_rejected(client):
+    assert post(client, a4="0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1").status_code == 422
