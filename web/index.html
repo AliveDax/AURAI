@@ -5,14 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Art for your wall</title>
   <meta name="description" content="Photograph your wall and get artworks that suit the space, the room and the mood you want.">
-  <meta name="theme-color" content="#f6f3ee" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#16171a" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#eef0f3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0c10" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Art for your wall">
+  <meta name="apple-mobile-web-app-title" content="Art Wall">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Silkscreen&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,42 +23,58 @@
     <button class="icon-btn" id="back" aria-label="Back" hidden>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
     </button>
-    <h1>Art for your wall</h1>
+    <div class="wordmark" aria-label="Art Wall">ART<span>✦</span>WALL</div>
+    <div class="status" id="status">READY</div>
   </header>
 
   <main>
     <!-- Step 1: photo -->
     <section id="step-photo" class="step">
       <div class="hero">
-        <div class="hero-frame" aria-hidden="true">
-          <span></span>
+        <p class="kicker">Art recommender · v1.0</p>
+        <h1>Find the right art<br>for <em>your</em> wall.</h1>
+        <p class="lede">Snap the wall. We find the empty space, read the room's colours and style, and pick artworks that fit.</p>
+      </div>
+
+      <div class="window">
+        <div class="titlebar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>new_photo.exe</span></div>
+        <div class="window-body stack">
+          <label class="btn gloss block" for="camera">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+            Take a photo
+          </label>
+          <input id="camera" type="file" accept="image/*" capture="environment" hidden>
+          <label class="btn chrome block" for="library">Choose from your photos</label>
+          <input id="library" type="file" accept="image/*" hidden>
         </div>
-        <h2>Photograph the wall where the art will go</h2>
-        <p class="muted">We find the empty space, read the room's colours and style, and suggest artworks that fit.</p>
       </div>
-      <label class="btn primary block" for="camera">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
-        Take a photo
-      </label>
-      <input id="camera" type="file" accept="image/*" capture="environment" hidden>
-      <label class="btn block" for="library">Choose from your photos</label>
-      <input id="library" type="file" accept="image/*" hidden>
+
       <div class="tip">
-        <strong>Want size checks?</strong> Tape a sheet of A4 paper flat on the same wall before you take the photo.
+        <span class="tip-icon" aria-hidden="true">i</span>
+        <p><strong>Want size checks?</strong> Tape a sheet of A4 paper flat on the same wall before you take the photo.</p>
       </div>
+
+      <ol class="how">
+        <li><b>01</b> Photo of the wall</li>
+        <li><b>02</b> Pick a mood</li>
+        <li><b>03</b> Get artworks that fit</li>
+      </ol>
     </section>
 
     <!-- Step 2: preferences -->
     <section id="step-prefs" class="step" hidden>
-      <div class="photo-wrap" id="photo-wrap">
-        <img id="photo" alt="Your wall">
-        <div id="draw-box" class="draw-box" hidden></div>
-        <p class="draw-hint" id="draw-hint" hidden>Drag on the photo to mark where the art goes</p>
+      <div class="window">
+        <div class="titlebar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>wall.jpg</span></div>
+        <div class="photo-wrap" id="photo-wrap">
+          <img id="photo" alt="Your wall">
+          <div id="draw-box" class="draw-box" hidden></div>
+          <p class="draw-hint" id="draw-hint" hidden>Drag on the photo to mark the spot</p>
+        </div>
       </div>
 
       <form id="prefs" novalidate>
         <fieldset>
-          <legend>How should the room feel?</legend>
+          <legend><span class="num">01</span> How should the room feel?</legend>
           <div class="chips" id="mood-chips">
             <button type="button" class="chip" data-mood="calm">Calm</button>
             <button type="button" class="chip" data-mood="cozy">Cozy</button>
@@ -68,20 +87,20 @@
         </fieldset>
 
         <fieldset>
-          <legend>What kind of art? <span class="muted">Optional</span></legend>
+          <legend><span class="num">02</span> What kind of art? <span class="opt">optional</span></legend>
           <input type="text" id="description" placeholder="a landscape, something abstract…" autocomplete="off">
         </fieldset>
 
         <fieldset>
-          <legend>A colour you'd like in it? <span class="muted">Optional</span></legend>
+          <legend><span class="num">03</span> A colour you'd like in it? <span class="opt">optional</span></legend>
           <div class="colour-row">
-            <label class="switch"><input type="checkbox" id="use-colour"><span></span></label>
-            <input type="color" id="colour" value="#2a9d8f" disabled aria-label="Preferred colour">
+            <label class="switch"><input type="checkbox" id="use-colour" aria-label="Use a preferred colour"><span></span></label>
+            <input type="color" id="colour" value="#2f5bff" disabled aria-label="Preferred colour">
           </div>
         </fieldset>
 
         <fieldset>
-          <legend>Where it goes</legend>
+          <legend><span class="num">04</span> Where it goes</legend>
           <div class="segmented" role="radiogroup" id="placement">
             <button type="button" role="radio" aria-checked="true" data-value="auto">Find the space</button>
             <button type="button" role="radio" aria-checked="false" data-value="mark">I'll mark it</button>
@@ -89,7 +108,7 @@
         </fieldset>
 
         <fieldset>
-          <legend>Shape</legend>
+          <legend><span class="num">05</span> Shape</legend>
           <div class="segmented" role="radiogroup" id="shape">
             <button type="button" role="radio" aria-checked="true" data-value="">Any</button>
             <button type="button" role="radio" aria-checked="false" data-value="portrait">Tall</button>
@@ -99,52 +118,64 @@
         </fieldset>
 
         <fieldset>
-          <legend>Size of the space</legend>
+          <legend><span class="num">06</span> Size of the space</legend>
           <div class="segmented" role="radiogroup" id="size-mode">
             <button type="button" role="radio" aria-checked="true" data-value="a4">A4 in photo</button>
-            <button type="button" role="radio" aria-checked="false" data-value="manual">I'll enter it</button>
+            <button type="button" role="radio" aria-checked="false" data-value="manual">Enter it</button>
             <button type="button" role="radio" aria-checked="false" data-value="skip">Skip</button>
           </div>
           <div class="size-inputs" id="size-inputs" hidden>
-            <label>Width <input type="number" id="width-cm" inputmode="decimal" min="5" max="2000" value="120"> cm</label>
-            <label>Height <input type="number" id="height-cm" inputmode="decimal" min="5" max="2000" value="80"> cm</label>
+            <label><span>W</span><input type="number" id="width-cm" inputmode="decimal" min="5" max="2000" value="120"><span>cm</span></label>
+            <label><span>H</span><input type="number" id="height-cm" inputmode="decimal" min="5" max="2000" value="80"><span>cm</span></label>
           </div>
         </fieldset>
       </form>
 
       <div class="sticky-cta">
-        <button class="btn primary block" id="go">Find artwork</button>
+        <button class="btn gloss block" id="go">Find artwork <span aria-hidden="true">→</span></button>
       </div>
     </section>
 
     <!-- Step 3: results -->
     <section id="step-results" class="step" hidden>
-      <div class="photo-wrap result-photo">
-        <img id="result-photo" alt="Your wall with the chosen space marked">
-        <svg id="overlay" class="overlay" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="window">
+        <div class="titlebar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>analysis.jpg</span></div>
+        <div class="photo-wrap result-photo">
+          <img id="result-photo" alt="Your wall with the chosen space marked">
+          <svg id="overlay" class="overlay" preserveAspectRatio="none" aria-hidden="true"></svg>
+        </div>
+        <div class="legend-row" aria-hidden="true"><span class="key space"></span>space <span class="key a4"></span>A4 sheet</div>
       </div>
-      <div id="summary" class="summary"></div>
+
+      <dl id="summary" class="summary"></dl>
       <div id="notice" class="notice" hidden></div>
-      <h2 class="section-title" id="results-title">Recommendations</h2>
+
+      <h2 class="section-title" id="results-title"><span>Picks for you</span><span class="count" id="count"></span></h2>
       <ol id="results" class="results"></ol>
-      <button class="btn block" id="restart">Try another photo</button>
-      <p class="credit muted">Artworks and emotion labels from the EmoArt dataset (CC BY-NC 4.0). Sizes from Wikidata where known.</p>
+      <button class="btn chrome block" id="restart">Try another photo</button>
+      <p class="credit">Artworks &amp; emotion labels: EmoArt (CC BY-NC 4.0). Sizes: Wikidata, where known.</p>
     </section>
 
     <div id="loading" class="loading" hidden role="status" aria-live="polite">
-      <div class="spinner" aria-hidden="true"></div>
-      <p id="loading-text">Looking at your room…</p>
+      <div class="window dialog">
+        <div class="titlebar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>working…</span></div>
+        <div class="window-body">
+          <p id="loading-text">Looking at your room…</p>
+          <div class="progress" aria-hidden="true"><i></i></div>
+        </div>
+      </div>
     </div>
     <div id="error" class="error" hidden role="alert"></div>
   </main>
 
   <template id="card-tpl">
-    <li class="card">
+    <li class="card window">
+      <div class="titlebar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="filename"></span></div>
       <img class="art" loading="lazy" alt="">
       <div class="card-body">
-        <h3><span class="rank"></span> <span class="title"></span></h3>
-        <p class="artist muted"></p>
-        <p class="meta"></p>
+        <h3 class="title"></h3>
+        <p class="artist"></p>
+        <div class="tags"></div>
         <div class="palette" aria-hidden="true"></div>
         <details>
           <summary>Why this one</summary>

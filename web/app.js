@@ -176,6 +176,7 @@ $("go").addEventListener("click", async () => {
 
   $("go").disabled = true;
   $("loading").hidden = false;
+  setStatus("busy");
   $("loading-text").textContent = "Looking at your room…";
   const slow = setTimeout(() => ($("loading-text").textContent = "Still working — the first search after a restart loads the models, which takes a little longer."), 6000);
   try {
@@ -188,12 +189,26 @@ $("go").addEventListener("click", async () => {
     showError(err.message === "Failed to fetch" ? "Can't reach the server. Check your connection." : err.message);
   } finally {
     clearTimeout(slow);
+    setStatus();
     $("loading").hidden = true;
     $("go").disabled = false;
   }
 });
 
+function setStatus(mode) {
+  $("status").textContent = mode === "busy" ? "WORKING" : "READY";
+  $("status").classList.toggle("busy", mode === "busy");
+}
+
 // ---------------------------------------------------------------- results
+const slug = (t) => (t || "untitled").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 28) + ".jpg";
+const LEDS = 10;
+function leds(v, maxAbs) {
+  const n = Math.max(1, Math.round((Math.abs(v) / maxAbs) * LEDS));
+  const wrap = el("span", { className: `leds ${v >= 0 ? "pos" : "neg"}`, title: v.toFixed(2) });
+  for (let i = 0; i < LEDS; i++) wrap.append(el("i", { className: i < n ? "on" : "" }));
+  return wrap;
+}
 const el = (tag, props = {}, kids = []) => {
   const n = Object.assign(document.createElement(tag), props);
   kids.forEach((k) => n.append(k));
@@ -210,18 +225,18 @@ function render(d) {
   let shapes = "";
   if (d.space.box) {
     const [x, y, w, h] = d.space.box;
-    shapes += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(63,191,117,.15)" stroke="#3fbf75" stroke-width="${t}"/>`;
+    shapes += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(47,91,255,.14)" stroke="#2f5bff" stroke-width="${t}"/>`;
   }
-  if (d.a4_corners) shapes += `<polygon points="${d.a4_corners.map((p) => p.join(",")).join(" ")}" fill="none" stroke="#e2554a" stroke-width="${t}"/>`;
+  if (d.a4_corners) shapes += `<polygon points="${d.a4_corners.map((p) => p.join(",")).join(" ")}" fill="none" stroke="#ff3d7f" stroke-width="${t}"/>`;
   svg.innerHTML = shapes;
   // The overlay must match the contained image, so size the wrapper to the photo's aspect ratio
   $("result-photo").parentElement.style.aspectRatio = `${d.photo.width} / ${d.photo.height}`;
 
   const sum = $("summary");
   sum.replaceChildren();
-  const row = (label, content) => sum.append(el("div", { className: "row" }, [el("span", { className: "label", textContent: label }), content]));
-  if (d.measurement) row("Space", el("span", { textContent: `${cm(d.measurement.width_cm, d.measurement.height_cm)} ${d.measurement.source === "a4" ? "(from the A4 sheet)" : "(as entered)"}` }));
-  if (d.room_style.length) row("Room style", el("span", { textContent: d.room_style.map((s) => `${s.style} ${Math.round(s.p * 100)}%`).join(", ") }));
+  const row = (label, content) => sum.append(el("dt", { textContent: label }), el("dd", {}, [content]));
+  if (d.measurement) row("Space", el("span", { textContent: `${cm(d.measurement.width_cm, d.measurement.height_cm)} ${d.measurement.source === "a4" ? "· from A4" : "· entered"}` }));
+  if (d.room_style.length) row("Room", el("span", { textContent: d.room_style.slice(0, 1).map((s) => `${s.style} ${Math.round(s.p * 100)}%`).join(" · ") }));
   row("Wall", swatches(d.wall_colours));
   if (d.decor_colours.length) row("Decor", swatches(d.decor_colours));
 
@@ -236,6 +251,7 @@ function render(d) {
   const list = $("results");
   list.replaceChildren();
   $("results-title").hidden = !d.recommendations.length;
+  $("count").textContent = `${d.recommendations.length} of ${d.n_candidates}`;
   const tpl = $("card-tpl");
   const maxAbs = Math.max(0.01, ...d.recommendations.flatMap((r) => r.reasons.map((x) => Math.abs(x.value))));
   for (const r of d.recommendations) {
@@ -243,24 +259,25 @@ function render(d) {
     const img = card.querySelector(".art");
     img.src = r.image_url;
     img.alt = `${r.title} by ${r.artist}`;
-    card.querySelector(".rank").textContent = `${r.rank}.`;
+    card.querySelector(".filename").textContent = `${String(r.rank).padStart(2, "0")}_${slug(r.title)}`;
     card.querySelector(".title").textContent = r.title;
     card.querySelector(".artist").textContent = r.artist;
-    const meta = card.querySelector(".meta");
-    meta.textContent = [r.style, r.emotion && `feels ${r.emotion}`].filter(Boolean).join(" · ") + " · ";
+    const tags = card.querySelector(".tags");
+    const tag = (text, cls = "") => tags.append(el("span", { className: `tag ${cls}`, textContent: text }));
+    if (r.style) tag(r.style);
+    if (r.emotion) tag(r.emotion);
     if (r.width_cm && r.height_cm) {
-      meta.append(cm(r.width_cm, r.height_cm));
-      if (d.measurement) meta.append(el("span", { className: "badge ok", textContent: "fits" }));
+      tag(cm(r.width_cm, r.height_cm));
+      if (d.measurement) tag("✓ fits", "ok");
     } else {
-      meta.append("size unknown");
-      if (d.measurement) meta.append(el("span", { className: "badge", textContent: "not size-checked" }));
+      tag("size ?");
+      if (d.measurement) tag("not size-checked", "warn");
     }
     card.querySelector(".palette").append(...r.palette.map((h) => el("i", { style: `background:${h}` })));
     const reasons = card.querySelector(".reasons");
     for (const x of r.reasons) {
-      const pct = (Math.abs(x.value) / maxAbs) * 50;
-      const bar = el("i", { style: `${x.value >= 0 ? "left:50%" : `right:50%`};width:${pct}%;background:var(${x.value >= 0 ? "--pos" : "--neg"})` });
-      reasons.append(el("li", {}, [el("span", { textContent: x.label }), el("span", { className: "bar", title: x.value.toFixed(2) }, [bar])]));
+      const label = x.value >= 0 ? x.label : `${x.label} (−)`;
+      reasons.append(el("li", {}, [el("span", { textContent: label }), leds(x.value, maxAbs)]));
     }
     list.append(card);
   }
