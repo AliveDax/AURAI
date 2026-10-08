@@ -61,12 +61,18 @@ class Weights:
 @dataclass
 class ColorConfig:
     k_palette: int = 7            # k-means clusters per artwork (enough to keep accents)
-    k_room: int = 6               # clusters for room decor
+    k_room: int = 8               # clusters for room decor (enough to keep small accents)
     k_wall: int = 3               # clusters for the wall region
     max_pixels: int = 20_000      # subsample pixels before k-means for speed
     neutral_chroma: float = 12.0  # LCh chroma below this counts as neutral (white/grey/beige)
-    wall_share: float = 0.6       # weight of wall vs decor in the harmony score
-    neutral_wall_base: float = 0.7  # neutral walls go with almost anything
+    neutral_wall_base: float = 0.7  # palette_harmony: a neutral colour goes with almost anything
+    # Room harmony = echo of the room's accent colours + hue harmony with them + contrast with the wall
+    accent_min_chroma: float = 20.0  # LCh chroma from which a room colour counts as an accent
+    accent_share_power: float = 0.15  # accent weight = share**power * chroma: mostly how vivid a
+                                      # colour is, so cushions count more than a large dull floor
+    echo_sigma: float = 14.0        # CIEDE2000 scale for "the artwork contains this room colour"
+    echo_full_share: float = 0.25   # this much of the artwork in an accent colour = full echo
+    harmony_weights: tuple[float, float, float] = (0.45, 0.35, 0.20)  # echo, hue, contrast
     preferred_sigma: float = 15.0   # CIEDE2000 scale for "this is the user's colour"
     presence_delta_e: float = 20.0  # eval: colour counts as present below this distance
     presence_min_share: float = 0.05
@@ -93,11 +99,22 @@ class FitConfig:
 
 
 @dataclass
+class DiversityConfig:
+    """Re-ranking so the top picks aren't five near-identical works (maximal marginal
+    relevance on CLIP image embeddings, plus a cap per artist)."""
+    penalty: float = 2.0         # z-score units subtracted per unit of similarity above `floor`
+    floor: float = 0.6           # CLIP image-image cosine below which two works count as unrelated
+    max_per_artist: int = 1
+    diversify_first: int = 20    # only the first picks are re-ranked; the rest stay in score order
+
+
+@dataclass
 class Settings:
     weights: Weights = field(default_factory=Weights)
     color: ColorConfig = field(default_factory=ColorConfig)
     comfort: ComfortConfig = field(default_factory=ComfortConfig)
     fit: FitConfig = field(default_factory=FitConfig)
+    diversity: DiversityConfig = field(default_factory=DiversityConfig)
     top_n: int = 5
 
 

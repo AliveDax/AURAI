@@ -65,7 +65,23 @@ def test_neutral_wall_gets_base_score():
 
 def test_room_harmony_has_explainable_parts():
     r = room_harmony(pal(("#e67e22", 1)), pal(("#2f6db3", 1)), pal(("#7b5233", 1)), CC)
-    assert set(r) == {"score", "wall", "contrast", "decor"} and 0 <= r["score"] <= 1
+    assert set(r) == {"score", "echo", "hue", "contrast"} and 0 <= r["score"] <= 1
+
+
+def test_white_wall_art_echoing_the_accents_wins():
+    # White wall: the decision should come from the room's accents, not be the same for all art
+    wall = pal(("#eceae4", 1))
+    blue_room = pal(("#e8e4dc", 0.8), ("#1e5ac8", 0.2))
+    orange_room = pal(("#e8e4dc", 0.8), ("#e6781e", 0.2))
+    blue_art, orange_art = pal(("#2860c0", 0.6), ("#f0f0ea", 0.4)), pal(("#e07020", 0.6), ("#f0f0ea", 0.4))
+    assert room_harmony(blue_art, wall, blue_room, CC)["score"] > room_harmony(orange_art, wall, blue_room, CC)["score"]
+    assert room_harmony(orange_art, wall, orange_room, CC)["score"] > room_harmony(blue_art, wall, orange_room, CC)["score"]
+
+
+def test_neutral_room_falls_back_to_contrast():
+    wall = pal(("#f5f5f2", 1))
+    r = room_harmony(pal(("#202020", 1)), wall, pal(("#d8d8d4", 1)), CC)
+    assert r["echo"] is None and r["hue"] is None and r["score"] == r["contrast"] == 1.0
 
 
 def test_preferred_colour_more_area_scores_higher():

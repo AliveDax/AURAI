@@ -48,6 +48,7 @@ class Query:
     orientation: str | None = None            # "portrait" | "landscape" | "square"
     manual_size_cm: tuple[float, float] | None = None  # (width, height) of the space
     use_a4: bool = True
+    a4_corners: np.ndarray | None = None      # corners the user marked; skips detection
 
 
 @dataclass
@@ -101,6 +102,37 @@ class Recommender:
         e = self.encoder.encode_prompt_ensemble(templates, text)
         return self.catalog.embeddings[idx] @ e
 
+    def _diverse_order(self, final: np.ndarray, idx: np.ndarray, top_n: int) -> np.ndarray:
+        """Greedy maximal marginal relevance: each next pick is the best-scoring work after a
+        penalty for looking like one already picked, at most `max_per_artist` per artist."""
+        d = self.s.diversity
+        ranked = np.argsort(-final)
+        k = min(top_n, d.diversify_first, len(ranked))
+        if k <= 1 or d.penalty <= 0:
+            return ranked[:top_n]
+        pool = ranked[:max(50, 10 * k)]
+        emb = self.catalog.embeddings[idx[pool]]
+        artists = self.catalog.meta["artist"].to_numpy()[idx[pool]]
+        chosen: list[int] = []
+        per_artist: dict = {}
+        max_sim = np.zeros(len(pool))
+        while len(chosen) < k:
+            adj = final[pool] - d.penalty * np.maximum(0.0, max_sim - d.floor)
+            adj[chosen] = -np.inf
+            for i in np.flatnonzero(np.isfinite(adj)):
+                if artists[i] and per_artist.get(artists[i], 0) >= d.max_per_artist:
+                    adj[i] = -np.inf
+            if not np.isfinite(adj).any():
+                break
+            j = int(np.argmax(adj))
+            chosen.append(j)
+            if artists[j]:
+                per_artist[artists[j]] = per_artist.get(artists[j], 0) + 1
+            max_sim = np.maximum(max_sim, emb @ emb[j])
+        head = pool[chosen]
+        rest = ranked[~np.isin(ranked, head)]
+        return np.concatenate([head, rest])[:top_n]
+
     def _no_fit_message(self, art_w: np.ndarray, art_h: np.ndarray, m: Measurement) -> str:
         n_known = int((~(np.isnan(art_w) | np.isnan(art_h))).sum())
         if n_known == 0:
@@ -119,7 +151,7 @@ class Recommender:
         meta = self.catalog.meta
 
         # 1) Reference sheet (optional) and room analysis
-        corners = find_a4(img) if q.use_a4 else None
+        corners = q.a4_corners if q.a4_corners is not None else (find_a4(img) if q.use_a4 else None)
         exclude = a4_mask(corners, img.shape[:2]) if corners is not None else None
         room = analyze_room(img, self.s.color, self.segmenter, q.user_box, exclude)
 
@@ -175,14 +207,20 @@ class Recommender:
             comps["fit"] = None
 
         # 5) Combine + comfort prior
+        # Missing preferred colour: its weight stays with colour (room harmony), so colour
+        # keeps its share of the decision instead of being spread over everything
+        weights = dict(weights)
+        if comps["preferred_color"] is None:
+            weights["harmony"] = weights.get("harmony", 0) + weights.get("preferred_color", 0)
+            weights["preferred_color"] = 0.0
         final, contrib = combine(comps, weights)
         comfort = np.zeros(len(idx))
         if not prompts.mood_is_negative(q.mood):
             comfort = -self.s.comfort.negative_penalty * self.is_negative[idx]
             final = final + comfort
 
-        # 6) Top-N with explanations
-        order = np.argsort(-final)[:top_n]
+        # 6) Top-N with explanations, re-ranked for variety
+        order = self._diverse_order(final, idx, top_n)
         recs = []
         for rank, j in enumerate(order, 1):
             i = int(idx[j])

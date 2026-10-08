@@ -123,6 +123,11 @@ def palette_harmony(ref: Palette, art: Palette, cfg: ColorConfig) -> float:
     return float((pair * w).sum() / w.sum())
 
 
+def _delta_e(lab_a: np.ndarray, lab_b: np.ndarray) -> np.ndarray:
+    a, b = np.broadcast_arrays(np.atleast_2d(lab_a), np.atleast_2d(lab_b))
+    return deltaE_ciede2000(a, b)
+
+
 def lightness_contrast(wall: Palette, art: Palette) -> float:
     """Art should stand out from the wall a little. 0 = same lightness, 1 = >=30 L* apart."""
     l_wall = float((wall.lab[:, 0] * wall.weights).sum())
@@ -130,19 +135,69 @@ def lightness_contrast(wall: Palette, art: Palette) -> float:
     return min(1.0, abs(l_wall - l_art) / 30.0)
 
 
+def room_accents(*palettes: Palette | None, cfg: ColorConfig) -> Palette | None:
+    """The chromatic colours of the given palettes (sofa, cushions, rug, plants; a
+    coloured wall), weighted mostly by how vivid they are, so small cushions count more
+    than a large dull floor. Neutral colours (white/grey/beige) are left out: they say
+    nothing about which colours to bring in."""
+    labs, ws = [], []
+    for p in palettes:
+        if p is None:
+            continue
+        for lab, share, chroma in zip(p.lab, p.weights, p.lch[:, 1]):
+            if chroma >= cfg.accent_min_chroma:
+                labs.append(lab)
+                ws.append(share ** cfg.accent_share_power * chroma)
+    if not labs:
+        return None
+    w = np.array(ws)
+    return Palette(np.array(labs), w / w.sum())
+
+
+def echo_score(art: Palette, accents: Palette, cfg: ColorConfig) -> float:
+    """Interior-design rule: art ties a room together when it repeats the room's accent
+    colours. Per accent, the share of the artwork close to it (saturating at
+    echo_full_share), averaged over accents by their weight."""
+    de = _delta_e(art.lab[:, None, :], accents.lab[None, :, :])  # (art, accent)
+    cover = (np.exp(-0.5 * (de / cfg.echo_sigma) ** 2) * art.weights[:, None]).sum(0)
+    return float((np.minimum(1.0, cover / cfg.echo_full_share) * accents.weights).sum())
+
+
+def chromatic_harmony(ref: Palette, art: Palette, cfg: ColorConfig) -> float | None:
+    """Hue-template harmony over chromatic pairs only. Unlike palette_harmony, neutral
+    colours are left out rather than given a flat score, so they don't wash out the
+    differences between artworks. None if the artwork has no real colour."""
+    art_chromatic = art.lch[:, 1] >= cfg.neutral_chroma
+    if not art_chromatic.any():
+        return None
+    pair = hue_pair_score(ref.lch[:, None, 2], art.lch[None, art_chromatic, 2])
+    w = ref.weights[:, None] * art.weights[None, art_chromatic]
+    return float((pair * w).sum() / w.sum())
+
+
 def room_harmony(art: Palette, wall: Palette, decor: Palette | None, cfg: ColorConfig) -> dict:
-    """Harmony of an artwork with the room. Returns the score and its parts so
-    the UI and the writeup can explain every recommendation."""
-    wall_h = palette_harmony(wall, art, cfg)
-    contrast = lightness_contrast(wall, art)
-    wall_score = 0.85 * wall_h + 0.15 * contrast
-    if decor is None:
-        total = wall_score
-        decor_h = None
-    else:
-        decor_h = palette_harmony(decor, art, cfg)
-        total = cfg.wall_share * wall_score + (1 - cfg.wall_share) * decor_h
-    return {"score": total, "wall": wall_h, "contrast": contrast, "decor": decor_h}
+    """How well an artwork's colours suit the room, with its parts so the UI and the
+    writeup can explain every recommendation:
+      echo     - repeats the decor's accent colours (not the wall's: art the same colour
+                 as the wall disappears into it)
+      hue      - its colours sit well on the colour wheel next to the wall and decor colours
+                 (a complementary colour against a coloured wall is good)
+      contrast - stands out from the wall a little (lightness)
+    Parts that can't be computed (no accents in the room, a black-and-white artwork)
+    are dropped and the rest reweighted."""
+    decor_accents = room_accents(decor, cfg=cfg)
+    all_accents = room_accents(wall, decor, cfg=cfg)
+    parts = {
+        "echo": echo_score(art, decor_accents, cfg) if decor_accents is not None else None,
+        "hue": chromatic_harmony(all_accents, art, cfg) if all_accents is not None else None,
+        "contrast": lightness_contrast(wall, art),
+    }
+    if parts["hue"] is None and all_accents is not None:
+        parts["hue"] = 0.5  # a black-and-white artwork: neither clashes nor harmonises
+    weights = dict(zip(("echo", "hue", "contrast"), cfg.harmony_weights))
+    used = {k: v for k, v in parts.items() if v is not None}
+    total = sum(weights[k] * v for k, v in used.items()) / sum(weights[k] for k in used)
+    return {"score": float(total), **parts}
 
 
 def is_neutral_palette(p: Palette, cfg: ColorConfig) -> bool:
@@ -152,11 +207,6 @@ def is_neutral_palette(p: Palette, cfg: ColorConfig) -> bool:
 # ---------------------------------------------------------------------------
 # Preferred colour
 # ---------------------------------------------------------------------------
-
-
-def _delta_e(lab_a: np.ndarray, lab_b: np.ndarray) -> np.ndarray:
-    a, b = np.broadcast_arrays(np.atleast_2d(lab_a), np.atleast_2d(lab_b))
-    return deltaE_ciede2000(a, b)
 
 
 def preferred_color_score(art: Palette, target_lab: np.ndarray, cfg: ColorConfig) -> float:
