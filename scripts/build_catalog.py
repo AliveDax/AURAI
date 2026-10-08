@@ -219,7 +219,7 @@ def main():
 
     # Subset
     if args.ids_file:
-        ids = set(args.ids_file.read_text().split())
+        ids = {line.strip() for line in args.ids_file.read_text().splitlines() if line.strip()}  # ids contain spaces
         df = df[df["art_id"].isin(ids)]
     if args.require_dimensions:
         df = df[df["height_cm"].notna() & df["width_cm"].notna()]

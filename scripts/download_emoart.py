@@ -15,11 +15,12 @@ from artrec.config import EMOART_DIR
 
 REPO_ID = "printblue/EmoArt-130k"
 META_EXT = (".parquet", ".jsonl", ".json", ".csv")
+NOT_METADATA = {"dimensions.csv"}  # our own size lookup output, written next to the annotations
 
 
 def find_metadata_files(root: Path) -> list[Path]:
     return sorted(p for p in root.rglob("*")
-                  if p.suffix.lower() in META_EXT and p.stat().st_size > 0
+                  if p.suffix.lower() in META_EXT and p.stat().st_size > 0 and p.name not in NOT_METADATA
                   and not any(part.startswith((".", "_")) for part in p.relative_to(root).parts))  # skip .cache/
 
 
