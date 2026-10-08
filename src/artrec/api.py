@@ -162,6 +162,8 @@ def create_app(recommender: Recommender | None = None, load=None) -> FastAPI:
             "decor_colours": res.room.decor_palette.to_hex() if res.room.decor_palette else [],
             "n_candidates": res.n_candidates,
             "n_size_unknown": res.n_size_unknown,
+            "subject": description.strip() or None,
+            "subject_matches": res.subject_matches,
             "weights": res.weights_used,
             "message": res.message,
             "recommendations": [

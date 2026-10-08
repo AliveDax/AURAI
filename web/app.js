@@ -261,6 +261,11 @@ function render(d) {
   if (d.a4_requested && !d.measurement) notes.push("We couldn't find the A4 sheet, so sizes weren't checked. Tap its corners on the photo, or enter the size of the space.");
   if (d.space.source === "none") notes.push("Couldn't find a clear area on the wall. Try marking the spot yourself.");
   if (d.measurement && d.n_size_unknown) notes.push(`${d.n_candidates - d.n_size_unknown} artworks are known to fit; ${d.n_size_unknown} more have no recorded size, so only their shape was checked.`);
+  if (d.subject) {
+    notes.push(d.subject_matches
+      ? `Showing artworks with “${d.subject}” (${d.subject_matches} found).`
+      : `Nothing in the collection clearly shows “${d.subject}”, so these are the closest matches.`);
+  }
   if (d.message) notes.push(d.message);
   $("notice").hidden = !notes.length;
   $("notice").textContent = notes.join(" ");

@@ -199,3 +199,18 @@ def test_load_photo_applies_exif_rotation_and_downscales(tmp_path):
     out = load_photo(tmp_path / "phone.jpg", max_side=200)
     assert out.shape[:2] == (200, 150)                  # upright portrait, long side capped
     assert out[10, 75, 0] > 200 and out[-10, 75, 0] < 50  # red half now on top
+
+
+def test_warm_soft_palette_is_cozier_than_cool_bright():
+    from artrec.color import colour_mood_fit
+    from artrec.prompts import MOOD_PROFILES
+    warm = pal(("#8a5a2b", 0.5), ("#c98b3c", 0.3), ("#3b2a1e", 0.2))   # browns, amber, dark
+    cool = pal(("#9fd3f0", 0.6), ("#e8f4ff", 0.4))                     # icy blue, white
+    assert colour_mood_fit(warm, MOOD_PROFILES["cozy"]) > colour_mood_fit(cool, MOOD_PROFILES["cozy"])
+    assert colour_mood_fit(cool, MOOD_PROFILES["melancholic"]) > colour_mood_fit(cool, MOOD_PROFILES["cozy"])
+
+
+def test_mood_words_map_to_profiles():
+    from artrec.prompts import mood_profiles
+    assert mood_profiles("calm, cosy") == ["calm", "cozy"]
+    assert mood_profiles("something else") == []

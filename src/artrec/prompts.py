@@ -52,6 +52,7 @@ ROOM_STYLES: dict[str, tuple[str, list[str]]] = {
 # Prompt templates. Several phrasings are averaged ("prompt ensembling"), a
 # standard trick that makes CLIP text embeddings more stable.
 CONTENT_TEMPLATES = ["a painting of {}", "an artwork showing {}", "{}"]
+GENERIC_ART_PROMPTS = ["a painting", "an artwork", "a picture"]  # baseline for subject scores
 MOOD_TEMPLATES = ["a painting that feels {}", "an artwork with a {} mood", "a {} painting"]
 EMOTION_EVAL_TEMPLATES = ["a painting that makes you feel {}", "an artwork that evokes a feeling of being {}"]
 
@@ -71,6 +72,56 @@ MOOD_TO_EMOTIONS: dict[str, list[str]] = {
     "melancholic": ["sad"], "melancholy": ["sad"], "sad": ["sad"], "moody": ["sad", "tired"],
     "gloomy": ["sad", "tired"], "dark": ["sad", "alarmed"],
 }
+
+
+# What each mood looks like, for the mood score:
+#   prompts  - descriptive phrases for CLIP (richer than "a painting that feels cozy")
+#   warmth   - -1 cool .. +1 warm colours;  light - target mean L* (0-100);  chroma - target colourfulness
+# Colour targets follow common colour-psychology findings: warm, soft, mid-dark palettes read as
+# cozy; bright saturated ones as cheerful or energetic; cool, muted, darker ones as melancholic.
+MOOD_PROFILES: dict[str, dict] = {
+    "cozy": {"prompts": ["a warm, cozy painting with soft golden light", "an intimate, homely everyday scene",
+                         "a snug interior by the fireside", "a gentle, comforting scene in warm colours"],
+             "warmth": 1.0, "light": 45, "chroma": 28},
+    "calm": {"prompts": ["a calm, peaceful painting", "a serene, quiet landscape in soft light",
+                         "a tranquil scene with gentle, harmonious colours"],
+             "warmth": 0.0, "light": 62, "chroma": 18},
+    "cheerful": {"prompts": ["a joyful, sunny painting full of bright colour", "a cheerful, lively scene",
+                             "a happy, playful artwork"],
+                 "warmth": 0.5, "light": 68, "chroma": 45},
+    "energetic": {"prompts": ["a dynamic, energetic painting with bold colours", "a vibrant composition full of movement",
+                              "a bold, exciting artwork"],
+                  "warmth": 0.3, "light": 55, "chroma": 55},
+    "dramatic": {"prompts": ["a dramatic painting with strong contrast and deep shadows", "a powerful, intense scene",
+                             "a stormy, theatrical painting"],
+                 "warmth": 0.0, "light": 35, "chroma": 32},
+    "romantic": {"prompts": ["a tender, romantic painting", "a dreamy, loving scene in soft light"],
+                 "warmth": 0.6, "light": 58, "chroma": 30},
+    "melancholic": {"prompts": ["a melancholic, wistful painting in muted colours", "a quiet, lonely scene in grey light",
+                                "a sombre, reflective artwork"],
+                    "warmth": -0.6, "light": 42, "chroma": 12},
+}
+MOOD_SYNONYMS = {
+    "cosy": "cozy", "warm": "cozy", "homely": "cozy", "comforting": "cozy", "snug": "cozy", "hygge": "cozy",
+    "calming": "calm", "peaceful": "calm", "relaxing": "calm", "serene": "calm", "tranquil": "calm",
+    "soothing": "calm", "quiet": "calm", "happy": "cheerful", "joyful": "cheerful", "uplifting": "cheerful",
+    "bright": "cheerful", "playful": "cheerful", "lively": "energetic", "vibrant": "energetic",
+    "bold": "energetic", "exciting": "energetic", "intense": "dramatic", "moody": "melancholic",
+    "melancholy": "melancholic", "sad": "melancholic", "gloomy": "melancholic", "wistful": "melancholic",
+    "dark": "dramatic", "love": "romantic", "dreamy": "romantic", "tender": "romantic",
+}
+MOOD_TO_EMOTIONS.update({"romantic": ["content", "glad"], "dreamy": ["calm", "content"],
+                         "homely": ["content", "calm"], "snug": ["content", "calm"]})
+
+
+def mood_profiles(mood: str | None) -> list[str]:
+    """Names of the mood profiles mentioned in free text ('calm, cozy' -> ['calm', 'cozy'])."""
+    found: list[str] = []
+    for word in (mood or "").lower().replace(",", " ").split():
+        name = word if word in MOOD_PROFILES else MOOD_SYNONYMS.get(word)
+        if name and name not in found:
+            found.append(name)
+    return found
 
 
 def mood_emotions(mood: str | None) -> list[str]:

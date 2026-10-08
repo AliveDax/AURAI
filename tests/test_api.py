@@ -38,6 +38,7 @@ def test_recommend_returns_explained_results(client):
     assert all("label" in x and "value" in x for x in first["reasons"])
     assert d["photo"] == {"width": 400, "height": 300}
     assert d["space"]["box"] is not None
+    assert d["subject"] is None and d["subject_matches"] is None
 
 
 def test_manual_size_and_user_box(client):

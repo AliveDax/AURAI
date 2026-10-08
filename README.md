@@ -19,23 +19,26 @@ room photo ─┬─ wall segmentation (pretrained SegFormer, ADE20K "wall") ─
             └─ surroundings (wall greyed out) ─ CLIP ─ room style ─ art prompts ─ style score
 description ─ CLIP text → artwork  .............................. content score
 colour      ─ CIEDE2000 distance to artwork palette ............. preferred-colour score
-mood        ─ CLIP text → artwork  .............................. emotion score
+mood        ─ CLIP mood phrases + EmoArt emotion labels + colour psychology ... emotion score
             + comfort prior: negative-emotion artworks pushed down unless the user asks for that mood
 ```
 
 Each score is z-scored across the candidates for that query, then combined with
-weights from `src/artrec/config.py`. The starting weights follow the plan
-(style 40%, colour 35%, emotion 25%) plus a size/shape fit term. When an
-optional input (description, colour) is missing, its weight is shared out
-among the rest. Every recommendation shows how much each score contributed.
+weights from `src/artrec/config.py`. The plan started at style 40%, colour 35%,
+emotion 25%; in use the room's style outvoted the mood the user picked, so mood is
+now the largest term (style 28%, colour 30%, emotion 35%, fit 7%). A named subject
+("a dog") filters the candidates first: only artworks that clearly show it are ranked.
+A missing preferred colour gives its weight to room harmony; other missing inputs are
+shared out among the rest. The top picks are re-ranked for variety (one per artist,
+near-duplicates pushed apart). Every recommendation shows how much each score contributed.
 
 | Score | Source | Ours or pretrained |
 |---|---|---|
-| Content (description) | CLIP text–image similarity | pretrained, used as-is |
+| Content (description) | CLIP text–image similarity relative to a generic prompt, + EmoArt description keywords as a filter | pretrained + **ours** |
 | Surroundings style | CLIP zero-shot room style → art-style prompts | pretrained + our prompt design |
-| Colour harmony | k-means in LAB, hue templates, neutral-wall rule | **ours** |
+| Colour harmony | k-means in LAB; echo of decor accent colours, hue templates, contrast with the wall | **ours** |
 | Preferred colour | CIEDE2000 distance weighted by palette share | **ours** |
-| Emotion | CLIP text–image similarity | pretrained, used as-is |
+| Emotion | CLIP vs descriptive mood phrases, EmoArt emotion labels, colour psychology (warmth, lightness, chroma) | pretrained + **ours** |
 | Comfort prior | EmoArt emotion labels (valence) | **ours** |
 | Fit | fill ratio (ideal 60–75%) + aspect-ratio match | **ours** |
 | Size filter | homography from A4 sheet, or manual entry | **ours** |

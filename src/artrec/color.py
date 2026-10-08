@@ -200,6 +200,25 @@ def room_harmony(art: Palette, wall: Palette, decor: Palette | None, cfg: ColorC
     return {"score": float(total), **parts}
 
 
+def palette_mood_stats(p: Palette) -> dict:
+    """Warmth (-1 cool .. +1 warm), mean lightness L* and mean chroma of a palette.
+    Warm hues (red-orange-yellow) sit around 60 degrees in LCh; grey-ish colours count less."""
+    lch = p.lch
+    strength = np.clip(lch[:, 1] / 40.0, 0, 1)
+    warmth = float((p.weights * strength * np.cos(np.radians(lch[:, 2] - 60.0))).sum())
+    return {"warmth": warmth, "light": float((p.weights * lch[:, 0]).sum()),
+            "chroma": float((p.weights * lch[:, 1]).sum())}
+
+
+def colour_mood_fit(p: Palette, profile: dict) -> float:
+    """How well an artwork's colours suit a mood profile (see prompts.MOOD_PROFILES), 0-1."""
+    s = palette_mood_stats(p)
+    parts = [1 - abs(s["warmth"] - profile["warmth"]) / 2,
+             float(np.exp(-0.5 * ((s["light"] - profile["light"]) / 18.0) ** 2)),
+             float(np.exp(-0.5 * ((s["chroma"] - profile["chroma"]) / 15.0) ** 2))]
+    return float(np.mean(parts))
+
+
 def is_neutral_palette(p: Palette, cfg: ColorConfig) -> bool:
     return float((p.lch[:, 1] * p.weights).sum()) < cfg.neutral_chroma
 

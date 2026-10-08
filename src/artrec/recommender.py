@@ -12,19 +12,27 @@ All components are z-scored per query and combined with config weights.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 import numpy as np
 
 from . import prompts
 from .catalog import Catalog
-from .color import parse_color, preferred_color_score, room_harmony
-from .config import NEGATIVE_EMOTIONS, SETTINGS, Settings
+from .color import colour_mood_fit, parse_color, preferred_color_score, room_harmony
+from .config import EMOART_EMOTIONS, NEGATIVE_EMOTIONS, SETTINGS, Settings
 from .measure import Measurement, a4_mask, find_a4, homography_from_a4, measure_box
 from .room import Box, RoomAnalysis, analyze_room
-from .scoring import aspect_score, combine, effective_weights, fill_score, size_filter
+from .scoring import aspect_score, combine, effective_weights, fill_score, size_filter, zscore
 
 ORIENTATION_ASPECT = {"portrait": 0.75, "landscape": 1.33, "square": 1.0}
+
+# EMOART_EMOTIONS is ordered in valence/arousal quadrants of three
+EMOTION_QUADRANT = {e: i // 3 for i, e in enumerate(EMOART_EMOTIONS)}
+QUADRANT_OF = {("positive", "high"): 0, ("negative", "high"): 1, ("negative", "low"): 2, ("positive", "low"): 3}
+SUBJECT_STOPWORDS = {"a", "an", "the", "of", "with", "and", "or", "some", "something", "any", "in", "on",
+                     "painting", "paintings", "picture", "pictures", "art", "artwork", "artworks", "image",
+                     "showing", "shows", "like", "kind", "style", "please", "i", "want", "me", "my"}
 
 # Plain-language names for each score, shown next to its contribution
 EXPLANATION_LABELS = {
@@ -72,6 +80,7 @@ class Result:
     room_style: dict[str, float]
     message: str = ""
     n_size_unknown: int = 0  # candidates kept although their size couldn't be checked
+    subject_matches: int | None = None  # artworks that clearly show the requested subject
 
 
 class Recommender:
@@ -87,8 +96,18 @@ class Recommender:
             e = encoder.encode_texts(prompts.ROOM_STYLES[n][1]).mean(0)
             art.append(e / np.linalg.norm(e))
         self.art_style_emb = np.stack(art)
+        # Some images (often flat abstracts) are close to almost any text in CLIP space;
+        # subject scores are measured relative to this generic prompt to cancel that out
+        g = encoder.encode_texts(prompts.GENERIC_ART_PROMPTS).mean(0)
+        self.generic_sim = catalog.embeddings @ (g / np.linalg.norm(g))
         labels = catalog.meta["emotion"].astype(str).str.lower()
         self.is_negative = labels.isin(NEGATIVE_EMOTIONS).to_numpy()
+        self.labels = labels.to_numpy()
+        meta = catalog.meta
+        self.quadrant = np.array([QUADRANT_OF.get((str(v).lower(), str(a).lower()), -1)
+                                  for v, a in zip(meta["valence"], meta["arousal"])])
+        self.text_lc = (meta["title"].fillna("").astype(str) + " . "
+                        + meta["description"].fillna("").astype(str)).str.lower().to_numpy()
 
     # -- components ------------------------------------------------------------
 
@@ -101,6 +120,54 @@ class Recommender:
     def text_score(self, templates: list[str], text: str, idx: np.ndarray) -> np.ndarray:
         e = self.encoder.encode_prompt_ensemble(templates, text)
         return self.catalog.embeddings[idx] @ e
+
+    def _subject_filter(self, description: str, idx: np.ndarray) -> tuple[np.ndarray, np.ndarray, int]:
+        """Artworks that clearly show what the user asked for: a strong CLIP match, or a
+        moderate one that EmoArt's content description confirms ('dog' in its text).
+        Returns (kept positions into idx, their content scores, number of real matches)."""
+        cfg = self.s.subject
+        clip = self.text_score(prompts.CONTENT_TEMPLATES, description, idx) - self.generic_sim[idx]
+        z = zscore(clip)
+        words = [w for w in re.findall(r"[a-z]+", description.lower()) if w not in SUBJECT_STOPWORDS and len(w) > 2]
+        if words:
+            pat = re.compile(r"\b(" + "|".join(re.escape(w.rstrip("s")) for w in words) + r")(s|es)?\b")
+            keyword = np.array([bool(pat.search(t)) for t in self.text_lc[idx]])
+        else:
+            keyword = np.zeros(len(idx), bool)
+        match = (z >= cfg.z_alone) | (keyword & (z >= cfg.z_with_keyword))
+        n_match = int(match.sum())
+        if n_match < min(cfg.min_pool, len(idx)):  # too few: take the best matches anyway
+            match = np.zeros(len(idx), bool)
+            match[np.argsort(-(z + keyword))[:min(cfg.min_pool, len(idx))]] = True
+        keep = np.flatnonzero(match)
+        return keep, clip[keep], n_match
+
+    def mood_score(self, mood: str, idx: np.ndarray) -> tuple[np.ndarray, dict]:
+        """CLIP (descriptive phrases per mood) + EmoArt emotion labels + colour psychology,
+        each z-scored and blended. Moods outside the lexicon fall back to CLIP alone."""
+        cfg = self.s.mood
+        names = prompts.mood_profiles(mood)
+        if names:
+            phrases = [p for n in names for p in prompts.MOOD_PROFILES[n]["prompts"]]
+            e = self.encoder.encode_texts(phrases).mean(0)
+            clip = self.catalog.embeddings[idx] @ (e / np.linalg.norm(e))
+        else:
+            clip = self.text_score(prompts.MOOD_TEMPLATES, mood, idx)
+        parts = {"clip": (clip, cfg.clip)}
+
+        targets = prompts.mood_emotions(mood)
+        if targets:
+            quads = {EMOTION_QUADRANT[t] for t in targets if t in EMOTION_QUADRANT}
+            lab = np.where(np.isin(self.labels[idx], targets), 1.0,
+                           np.where(np.isin(self.quadrant[idx], list(quads)), 0.5, 0.0))
+            parts["label"] = (lab, cfg.label)
+        if names:
+            fits = np.array([[colour_mood_fit(self.catalog.palette(i), prompts.MOOD_PROFILES[n]) for n in names]
+                             for i in idx]).mean(1)
+            parts["colour"] = (fits, cfg.colour)
+        total_w = sum(w for _, w in parts.values())
+        score = sum(w * zscore(v) for v, w in parts.values()) / total_w
+        return score, {k: v for k, (v, _) in parts.items()}
 
     def _diverse_order(self, final: np.ndarray, idx: np.ndarray, top_n: int) -> np.ndarray:
         """Greedy maximal marginal relevance: each next pick is the best-scoring work after a
@@ -177,9 +244,16 @@ class Recommender:
             return Result([], room, measurement, corners, 0, {}, style_dict,
                           self._no_fit_message(art_w, art_h, measurement))
 
-        # 4) Component scores (None = input not given -> weight redistributed)
+        # 4) Subject: if the user named one, keep only artworks that show it
+        subject_matches = None
+        content = None
+        if q.description:
+            keep_pos, content, subject_matches = self._subject_filter(q.description, idx)
+            idx, size_known = idx[keep_pos], size_known[keep_pos]
+
+        # 5) Component scores (None = input not given -> weight redistributed)
         comps: dict[str, np.ndarray | None] = {}
-        comps["content"] = self.text_score(prompts.CONTENT_TEMPLATES, q.description, idx) if q.description else None
+        comps["content"] = content
         comps["surroundings"] = (self.catalog.embeddings[idx] @ self.art_style_emb.T) @ style_p
 
         harmony_parts = [room_harmony(self.catalog.palette(i), room.wall_palette, room.decor_palette, self.s.color)
@@ -193,7 +267,7 @@ class Recommender:
         )
 
         mood = q.mood or self.s.comfort.default_mood
-        comps["emotion"] = self.text_score(prompts.MOOD_TEMPLATES, mood, idx)
+        comps["emotion"], mood_parts = self.mood_score(mood, idx)
 
         aspect = ORIENTATION_ASPECT.get(q.orientation or "", room.space_aspect)
         if measurement and size_known.any():
@@ -206,7 +280,7 @@ class Recommender:
         else:
             comps["fit"] = None
 
-        # 5) Combine + comfort prior
+        # 6) Combine + comfort prior
         # Missing preferred colour: its weight stays with colour (room harmony), so colour
         # keeps its share of the decision instead of being spread over everything
         weights = dict(weights)
@@ -219,7 +293,7 @@ class Recommender:
             comfort = -self.s.comfort.negative_penalty * self.is_negative[idx]
             final = final + comfort
 
-        # 6) Top-N with explanations, re-ranked for variety
+        # 7) Top-N with explanations, re-ranked for variety
         order = self._diverse_order(final, idx, top_n)
         recs = []
         for rank, j in enumerate(order, 1):
@@ -233,10 +307,11 @@ class Recommender:
                 details={
                     "harmony": harmony_parts[j],
                     "palette_hex": self.catalog.palette(i).to_hex(),
+                    "mood": {k: float(v[j]) for k, v in mood_parts.items()},
                     "size_checked": bool(measurement) and bool(size_known[j]),
                     "raw": {k: float(v[j]) for k, v in comps.items() if v is not None},
                 },
             ))
         n_unknown = int((~size_known).sum()) if measurement else 0
         return Result(recs, room, measurement, corners, len(idx), effective_weights(comps, weights), style_dict,
-                      n_size_unknown=n_unknown)
+                      n_size_unknown=n_unknown, subject_matches=subject_matches)

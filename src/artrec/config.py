@@ -41,18 +41,20 @@ NEGATIVE_EMOTIONS = {"alarmed", "annoyed", "frustrated", "sad", "bored", "tired"
 
 @dataclass
 class Weights:
-    """Score weights. Grouped to mirror the project plan:
-    style 40% (content + surroundings), colour 35% (harmony + preferred),
-    emotion 25%. `fit` is an extra term for how well the size/shape fits.
-    Missing optional inputs have their weight redistributed (see scoring.py).
-    TUNE all of these.
+    """Score weights. The plan started at style 40% (content + surroundings), colour 35%
+    (harmony + preferred) and emotion 25%. In use, the mood the user picked was outvoted
+    by the room's style: the same pictures came up for 'cozy' and 'melancholic'. Mood is
+    now the largest term and the zero-shot room style the smallest:
+    style 28%, colour 30%, emotion 35%, fit 7%.
+    Missing optional inputs have their weight redistributed (preferred colour -> harmony,
+    see recommender.py; the rest proportionally, see scoring.py). TUNE all of these.
     """
-    content: float = 0.25        # user description  -> artwork (CLIP text-image)
-    surroundings: float = 0.15   # room decor style  -> artwork (CLIP, via text)
-    harmony: float = 0.25        # room palette      -> artwork palette (colour theory)
-    preferred_color: float = 0.10  # user's colour   -> artwork palette
-    emotion: float = 0.25        # mood text         -> artwork (CLIP text-image)
-    fit: float = 0.10            # size / shape fit of artwork to the empty space
+    content: float = 0.22        # user description  -> artwork (CLIP text-image, also filters)
+    surroundings: float = 0.06   # room decor style  -> artwork (CLIP, via text)
+    harmony: float = 0.21        # room palette      -> artwork palette (colour theory)
+    preferred_color: float = 0.09  # user's colour   -> artwork palette
+    emotion: float = 0.35        # mood -> CLIP phrases + EmoArt labels + colour psychology
+    fit: float = 0.07            # size / shape fit of artwork to the empty space
 
     def as_dict(self) -> dict:
         return dict(self.__dict__)
@@ -99,6 +101,24 @@ class FitConfig:
 
 
 @dataclass
+class MoodConfig:
+    """How the mood score is built. CLIP alone is weak at emotion, so it is blended with
+    EmoArt's (human-verified) emotion labels and with colour psychology."""
+    clip: float = 0.4     # CLIP: artwork vs descriptive phrases for the mood
+    label: float = 0.3    # EmoArt label is one of the mood's emotions (or same valence/arousal)
+    colour: float = 0.3   # warmth, lightness and colourfulness that suit the mood
+
+
+@dataclass
+class SubjectConfig:
+    """When the user names a subject ('a dog'), only artworks that clearly show it are
+    candidates; the other scores then rank within them."""
+    z_alone: float = 2.5         # CLIP match this far above average counts on its own
+    z_with_keyword: float = 0.5  # ...or this far, if the EmoArt description names the subject
+    min_pool: int = 20           # if fewer match, use this many best matches anyway
+
+
+@dataclass
 class DiversityConfig:
     """Re-ranking so the top picks aren't five near-identical works (maximal marginal
     relevance on CLIP image embeddings, plus a cap per artist)."""
@@ -115,6 +135,8 @@ class Settings:
     comfort: ComfortConfig = field(default_factory=ComfortConfig)
     fit: FitConfig = field(default_factory=FitConfig)
     diversity: DiversityConfig = field(default_factory=DiversityConfig)
+    mood: MoodConfig = field(default_factory=MoodConfig)
+    subject: SubjectConfig = field(default_factory=SubjectConfig)
     top_n: int = 5
 
 

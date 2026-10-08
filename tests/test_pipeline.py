@@ -37,8 +37,12 @@ def make_catalog(n=40):
     rng = np.random.default_rng(1)
     colours = [(200, 60, 40), (40, 90, 180), (230, 130, 40), (40, 150, 140), (240, 240, 235)]
     rows, embs, labs, ws = [], [], [], []
-    calm = enc.encode_prompt_ensemble(["a painting that feels {}", "an artwork with a {} mood", "a {} painting"],
-                                      "calm, peaceful and comforting")
+    # The phrases the recommender uses for the default mood ("calm, peaceful and comforting")
+    from artrec.config import SETTINGS
+    from artrec.prompts import MOOD_PROFILES, mood_profiles
+    phrases = [x for n in mood_profiles(SETTINGS.comfort.default_mood) for x in MOOD_PROFILES[n]["prompts"]]
+    calm = enc.encode_texts(phrases).mean(0)
+    calm /= np.linalg.norm(calm)
     for i in range(n):
         c = colours[2] if i in (3, 7) else colours[i % len(colours)]  # same colour: isolate the comfort effect
         img = np.full((40, 50, 3), c, np.uint8)
@@ -70,7 +74,8 @@ def test_end_to_end_ranks_and_explains():
     assert len(res.recommendations) == 5
     top_ids = [r.art_id for r in res.recommendations]
     assert top_ids[0] == "a3"                 # calm-looking, harmonious, labelled calm
-    assert top_ids.index("a7") > 0            # identical but labelled 'sad': comfort penalty pushes it down
+    full = [r.art_id for r in rec.recommend(Query(room_image=room_photo(), use_a4=False), top_n=40).recommendations]
+    assert full.index("a7") > 0               # identical but labelled 'sad': label + comfort penalty push it down
     r0 = res.recommendations[0]
     assert {"emotion", "harmony", "surroundings"} <= set(r0.contributions)
     assert abs(sum(res.weights_used.values()) - 1) < 1e-9
@@ -116,3 +121,17 @@ def test_user_box_overrides_detection():
     rec = Recommender(make_catalog(), FakeEncoder())
     res = rec.recommend(Query(room_image=room_photo(), use_a4=False, user_box=(150, 40, 90, 120)))
     assert res.room.space_source == "user" and res.room.space_box == (150, 40, 90, 120)
+
+
+def test_subject_filter_keeps_only_matching_artworks():
+    from artrec.config import Settings, SubjectConfig
+    from artrec.prompts import CONTENT_TEMPLATES
+    cat = make_catalog()
+    dog = FakeEncoder().encode_prompt_ensemble(CONTENT_TEMPLATES, "a dog")
+    for i in (2, 9):                                   # two artworks that clearly show a dog
+        cat.embeddings[i] = dog
+    cat.meta.loc[[2, 9], "description"] = "A dog sleeping by the fire."
+    rec = Recommender(cat, FakeEncoder(), settings=Settings(subject=SubjectConfig(min_pool=2)))
+    res = rec.recommend(Query(room_image=room_photo(), use_a4=False, description="a dog"), top_n=5)
+    assert res.subject_matches == 2
+    assert {r.art_id for r in res.recommendations} == {"a2", "a9"}
