@@ -127,8 +127,7 @@ class ImageResolver:
 
 def split_camel(s: str) -> str:
     s = re.sub(r"(?<=[a-z0-9)])(?=[A-Z(])", " ", s)
-    s = re.sub(r"([,;])(?=\S)", r"\1 ", s)  # 'Elder,1st' -> 'Elder, 1st'
-    return unglue(s).strip()
+    return re.sub(r"([,;])(?=\S)", r"\1 ", s).strip()  # 'Elder,1st' -> 'Elder, 1st'
 
 
 # File names drop the spaces before lower-case words: 'Snowat Ishinomaki', 'Portraitofa Lady'.
@@ -201,7 +200,8 @@ def artist_title_from_filename(src) -> tuple[str, str]:
     # Hyphenated first names: 'Jean-PaulRiopelle-Pavane' -> artist 'Jean-Paul Riopelle'
     if len(parts) >= 3 and not re.search(r"[a-z][A-Z]", parts[0]) and re.match(r"[A-Z][a-z]+[A-Z]", parts[1]):
         parts = [parts[0] + "-" + parts[1]] + parts[2:]
-    return split_camel(parts[0]), split_camel("-".join(parts[1:]))
+    # Names keep their spelling ('Jeaurat' is not 'Jeaur at'); only titles are re-spaced
+    return split_camel(parts[0]), unglue(split_camel("-".join(parts[1:])))
 
 
 def text(v) -> str:
