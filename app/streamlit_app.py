@@ -8,18 +8,10 @@ import streamlit as st
 
 from artrec.catalog import Catalog
 from artrec.config import CATALOG_PARQUET, ROOMS_DIR, ROOT, SETTINGS
-from artrec.recommender import Query, Recommender
+from artrec.recommender import EXPLANATION_LABELS, Query, Recommender
 from artrec.room import load_photo
 
-LABELS = {
-    "content": "Matches your description",
-    "surroundings": "Suits your room's style",
-    "harmony": "Colours work with your wall and decor",
-    "preferred_color": "Contains your colour",
-    "emotion": "Matches the mood",
-    "fit": "Fits the space",
-    "comfort_penalty": "Less comforting mood",
-}
+LABELS = EXPLANATION_LABELS
 
 st.set_page_config(page_title="Art for your wall", layout="wide")
 

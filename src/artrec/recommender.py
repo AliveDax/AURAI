@@ -26,6 +26,17 @@ from .scoring import aspect_score, combine, effective_weights, fill_score, size_
 
 ORIENTATION_ASPECT = {"portrait": 0.75, "landscape": 1.33, "square": 1.0}
 
+# Plain-language names for each score, shown next to its contribution
+EXPLANATION_LABELS = {
+    "content": "Matches your description",
+    "surroundings": "Suits your room's style",
+    "harmony": "Colours work with your wall and decor",
+    "preferred_color": "Contains your colour",
+    "emotion": "Matches the mood",
+    "fit": "Fits the space",
+    "comfort_penalty": "Less comforting mood",
+}
+
 
 @dataclass
 class Query:

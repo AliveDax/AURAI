@@ -70,6 +70,22 @@ streamlit run app/streamlit_app.py
 If `build_catalog.py` can't auto-detect a column, it prints its mapping; fix it
 with e.g. `--map emotion=annotation.emotion.domain_emotion`.
 
+## Phone app
+
+The app runs on a phone as a web app: the models stay on a server (`artrec.api`,
+FastAPI), and the phone opens a mobile page (`web/`) that takes the photo, shrinks it
+to 1600 px before uploading, and shows the results. It can be added to the home
+screen (it has a web manifest and icons).
+
+```bash
+uvicorn artrec.api:app --host 0.0.0.0 --port 8000
+```
+
+Then open `http://<this computer's IP>:8000` on a phone on the same Wi-Fi. The first
+search after a restart takes ~20 s while the models load. Set `ARTREC_NO_SEGMENTER=1`
+to skip the wall-segmentation model. "Add to Home Screen" as a full app needs HTTPS,
+i.e. a hosted server. The Streamlit demo (`app/streamlit_app.py`) is kept for development.
+
 ## Evaluation
 
 | Level | Script | What it measures | Baseline |
@@ -104,7 +120,9 @@ src/artrec/
   clip_model.py    open_clip wrapper
   catalog.py       precomputed catalog (metadata, embeddings, palettes)
   recommender.py   end-to-end pipeline with per-score explanations
+  api.py           HTTP API for the phone app
 scripts/           data preparation, evaluation, survey
+web/               phone web app (served by artrec.api)
 app/               Streamlit demo
 tests/             unit + end-to-end tests (fake encoder, no downloads)
 ```
