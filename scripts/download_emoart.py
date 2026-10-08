@@ -18,7 +18,9 @@ META_EXT = (".parquet", ".jsonl", ".json", ".csv")
 
 
 def find_metadata_files(root: Path) -> list[Path]:
-    return sorted(p for p in root.rglob("*") if p.suffix.lower() in META_EXT and p.stat().st_size > 0)
+    return sorted(p for p in root.rglob("*")
+                  if p.suffix.lower() in META_EXT and p.stat().st_size > 0
+                  and not any(part.startswith((".", "_")) for part in p.relative_to(root).parts))  # skip .cache/
 
 
 def read_any(path: Path, nrows: int | None = None) -> pd.DataFrame:
@@ -66,8 +68,10 @@ def main():
     args = ap.parse_args()
     if not args.inspect:
         from huggingface_hub import snapshot_download
-        allow = ["*.parquet", "*.json", "*.jsonl", "*.csv", "*.md"] if args.metadata_only else None
-        snapshot_download(REPO_ID, repo_type="dataset", local_dir=EMOART_DIR, allow_patterns=allow)
+        allow = ["*.parquet", "*.json", "*.jsonl", "*.csv"] if args.metadata_only else None
+        # ignore the dataset's README.md: it would overwrite ours in data/emoart/
+        snapshot_download(REPO_ID, repo_type="dataset", local_dir=EMOART_DIR, allow_patterns=allow,
+                          ignore_patterns=["README.md"])
         print(f"Downloaded to {EMOART_DIR}")
     inspect(EMOART_DIR)
 

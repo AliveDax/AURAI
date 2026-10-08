@@ -10,6 +10,7 @@ Outputs (data/cache/): catalog.parquet, image_embeddings.npy, palettes.npz
 """
 import argparse
 import io
+import re
 import sys
 from pathlib import Path
 
@@ -32,10 +33,10 @@ FIELDS = {
     "title": ["title", "artwork_name", "name"],
     "artist": ["artist", "artist_name", "author", "painter"],
     "style": ["style", "art_style", "category", "genre"],
-    "emotion": ["domain_emotion", "emotion_category", "emotional_category", "emotion"],
+    "emotion": ["dominant_emotion", "domain_emotion", "emotion_category", "emotional_category", "emotion"],
     "valence": ["valence"],
     "arousal": ["arousal"],
-    "therapy": ["therapeutic_potential", "art_therapy", "therapy", "therapeutic"],
+    "therapy": ["healing_effects", "therapeutic_potential", "art_therapy", "therapy", "therapeutic"],
     "description": ["content_description", "description", "caption"],
     "dimensions": ["dimensions", "dimension", "size"],
 }
@@ -124,6 +125,20 @@ class ImageResolver:
         return self.index().get(Path(value).name)
 
 
+def split_camel(s: str) -> str:
+    return re.sub(r"(?<=[a-z0-9)])(?=[A-Z(])", " ", s).strip()
+
+
+def artist_title_from_filename(src) -> tuple[str, str]:
+    """EmoArt file names look like '0008228_QiuYing-SpringMorningintheHanPalace.jpg'.
+    Approximate: words that were lower-case in the original stay joined."""
+    if not isinstance(src, str):
+        return "", ""
+    _, _, rest = Path(src).stem.partition("_")
+    artist, _, title = rest.partition("-")
+    return split_camel(artist), split_camel(title)
+
+
 def text(v) -> str:
     if v is None or (isinstance(v, float) and np.isnan(v)):
         return ""
@@ -159,13 +174,21 @@ def main():
 
     df = pd.DataFrame({
         "art_id": raw[cols["id"]].astype(str) if cols["id"] else raw.index.astype(str),
-        "image_src": raw[cols["image"]],
+        # EmoArt stores Windows paths ("Images\\Style\\file.jpg")
+        "image_src": raw[cols["image"]].map(lambda v: v.replace("\\", "/") if isinstance(v, str) else v),
     })
     for f in ["title", "artist", "style", "emotion", "valence", "arousal", "therapy", "description", "dimensions"]:
         df[f] = raw[cols[f]].map(text) if cols[f] else ""
-    df["emotion"] = df["emotion"].str.strip().str.lower()
+    # EmoArt uses "Contentment" where the paper's label set says "content"
+    df["emotion"] = df["emotion"].str.strip().str.lower().replace({"contentment": "content"})
     if not cols["style"]:  # fall back to the folder name, EmoArt is organised by style
         df["style"] = df["image_src"].map(lambda v: Path(v).parent.name if isinstance(v, str) else "")
+    if not cols["artist"] or not cols["title"]:  # fall back to the file name
+        at = df["image_src"].map(artist_title_from_filename)
+        if not cols["artist"]:
+            df["artist"] = at.map(lambda t: t[0])
+        if not cols["title"]:
+            df["title"] = at.map(lambda t: t[1])
     df = df.drop_duplicates("art_id")
 
     # Sizes: from the dataset if present, plus an optional enrichment CSV
