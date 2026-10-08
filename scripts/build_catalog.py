@@ -126,7 +126,69 @@ class ImageResolver:
 
 
 def split_camel(s: str) -> str:
-    return re.sub(r"(?<=[a-z0-9)])(?=[A-Z(])", " ", s).strip()
+    s = re.sub(r"(?<=[a-z0-9)])(?=[A-Z(])", " ", s)
+    s = re.sub(r"([,;])(?=\S)", r"\1 ", s)  # 'Elder,1st' -> 'Elder, 1st'
+    return unglue(s).strip()
+
+
+# File names drop the spaces before lower-case words: 'Snowat Ishinomaki', 'Portraitofa Lady'.
+# Peel such small words off the end of a token, but only when that's clearly what happened.
+GLUE_WORDS = ["with", "from", "into", "near", "and", "the", "for", "of", "at", "in", "on", "to", "by", "as", "an", "a"]
+STRONG_GLUE = {"of", "the", "and", "with", "at", "from", "into", "for", "near"}
+
+
+_COMMON: set[str] | None = None
+
+
+def _known(word: str) -> bool:
+    import wordninja
+    return word.lower() in wordninja.DEFAULT_LANGUAGE_MODEL._wordcost
+
+
+def _common(word: str) -> bool:
+    """Among the 40k most frequent English words (wordninja's list is frequency-ordered)."""
+    global _COMMON
+    if _COMMON is None:
+        import wordninja
+        _COMMON = set(list(wordninja.DEFAULT_LANGUAGE_MODEL._wordcost)[:40000])
+    return word.lower() in _COMMON
+
+
+def _unglue_token(tok: str) -> str:
+    if not tok.isascii() or len(tok) < 4 or _known(tok):
+        return tok
+    # 1) a run of joined lower-case words: 'Motherandbaby' -> 'Mother and baby'
+    if len(tok) >= 8 and tok[1:].islower():
+        import wordninja
+        parts = wordninja.split(tok)
+        if (len(parts) > 1 and "".join(parts) == tok
+                and all(_common(x) and (len(x) >= 3 or x.lower() in GLUE_WORDS) for x in parts)):
+            return " ".join(parts)
+    # 2) a leading article/preposition: 'Onthe' -> 'On the', 'Theglory' -> 'The glory'
+    for w in ("The", "On", "In", "At", "Of", "An", "A"):
+        rest = tok[len(w):]
+        if tok.startswith(w) and len(rest) >= 3 and rest[0].islower() and (_known(rest) or _unglue_token(rest) != rest):
+            return f"{w} {_unglue_token(rest)}"
+    # 3) small words glued to the end: 'Snowat' -> 'Snow at', 'Lagoonwitha' -> 'Lagoon with a'
+    stem, peeled = tok, []
+    while True:
+        low = stem.lower()
+        w = next((w for w in GLUE_WORDS if low.endswith(w) and len(stem) - len(w) >= 3), None)
+        if w is None:
+            break
+        peeled.insert(0, w)
+        stem = stem[:-len(w)]
+        if _known(stem):
+            break
+    # Strong words ('of', 'the', ...) are reliable on their own; weak ones ('in', 'by', 'a')
+    # only when what's left is a real word ('Tatton' must not become 'Tatt on')
+    if peeled and (STRONG_GLUE & set(peeled) or _known(stem)):
+        return " ".join([stem] + peeled)
+    return tok
+
+
+def unglue(s: str) -> str:
+    return re.sub(r"[A-Za-z]+", lambda m: _unglue_token(m.group()), s)
 
 
 def artist_title_from_filename(src) -> tuple[str, str]:

@@ -18,6 +18,7 @@ transformers>=4.40
 # Data
 huggingface_hub>=0.23
 requests>=2.31
+wordninja>=2.0       # re-spacing artwork titles taken from file names
 
 # Demo
 streamlit>=1.35
