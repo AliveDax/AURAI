@@ -82,6 +82,10 @@ class FitConfig:
     ideal_fill_high: float = 0.75  # roughly 2/3 to 3/4 of the available width
     min_margin_cm: float = 5.0     # artwork must leave at least this much free space
     aspect_tolerance: float = 0.30  # log-ratio scale for aspect-ratio matching
+    # Most EmoArt artworks have no known physical size. True: keep them when the
+    # space is measured (ranked by shape only, flagged as unchecked in the app).
+    # False: only recommend artworks proven to fit.
+    keep_unknown_sizes: bool = True
 
 
 @dataclass

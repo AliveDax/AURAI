@@ -123,8 +123,12 @@ with right:
     st.markdown("Wall colour " + swatch(res.room.wall_palette.to_hex()), unsafe_allow_html=True)
     if res.room.decor_palette:
         st.markdown("Decor colours " + swatch(res.room.decor_palette.to_hex()), unsafe_allow_html=True)
-    st.caption(f"{res.n_candidates} artworks fit the space. Weights used: "
-               + ", ".join(f"{k} {v:.0%}" for k, v in res.weights_used.items()))
+    if res.measurement and res.n_size_unknown:
+        st.caption(f"{res.n_candidates - res.n_size_unknown} artworks are known to fit the space; "
+                   f"{res.n_size_unknown} more have no recorded size, so only their shape was checked.")
+    else:
+        st.caption(f"{res.n_candidates} artworks fit the space.")
+    st.caption("Weights used: " + ", ".join(f"{k} {v:.0%}" for k, v in res.weights_used.items()))
 
 if not res.recommendations:
     st.error(res.message)
@@ -138,7 +142,8 @@ for r in res.recommendations:
     with c2:
         st.markdown(f"**{r.rank}. {r.row['title'] or 'Untitled'}**, {r.row['artist'] or 'unknown artist'}")
         size = (f"{r.row['width_cm']:.0f} × {r.row['height_cm']:.0f} cm (w × h)"
-                if np.isfinite(r.row["width_cm"]) else "size unknown")
+                if np.isfinite(r.row["width_cm"])
+                else "size unknown" + (", not checked against your wall" if res.measurement else ""))
         st.write(f"{r.row['style']}, {size}, labelled *{r.row['emotion']}*")
         st.markdown(swatch(r.details["palette_hex"]), unsafe_allow_html=True)
         for k, v in sorted(r.contributions.items(), key=lambda kv: -kv[1]):

@@ -59,6 +59,7 @@ class Result:
     weights_used: dict[str, float]
     room_style: dict[str, float]
     message: str = ""
+    n_size_unknown: int = 0  # candidates kept although their size couldn't be checked
 
 
 class Recommender:
@@ -117,6 +118,7 @@ class Recommender:
         else:
             keep = np.ones(len(meta), bool)
         idx = np.flatnonzero(keep)
+        size_known = ~(np.isnan(art_w[idx]) | np.isnan(art_h[idx]))
         style_p = self.room_style_probs(room.surroundings_image)
         style_dict = dict(sorted(zip(self.style_names, style_p.round(3).tolist()), key=lambda kv: -kv[1]))
         if len(idx) == 0:
@@ -142,10 +144,11 @@ class Recommender:
         comps["emotion"] = self.text_score(prompts.MOOD_TEMPLATES, mood, idx)
 
         aspect = ORIENTATION_ASPECT.get(q.orientation or "", room.space_aspect)
-        if measurement:
-            comps["fit"] = 0.5 * fill_score(art_w[idx], art_h[idx], measurement.width_cm,
-                                            measurement.height_cm, self.s.fit) \
-                + 0.5 * aspect_score(self.catalog.aspect[idx], aspect or 1.0, self.s.fit)
+        if measurement and size_known.any():
+            fill = fill_score(art_w[idx], art_h[idx], measurement.width_cm, measurement.height_cm, self.s.fit)
+            # Unknown sizes get the median fill of the known ones: neither rewarded nor punished
+            fill = np.where(size_known, fill, np.median(fill[size_known]))
+            comps["fit"] = 0.5 * fill + 0.5 * aspect_score(self.catalog.aspect[idx], aspect or 1.0, self.s.fit)
         elif aspect:
             comps["fit"] = aspect_score(self.catalog.aspect[idx], aspect, self.s.fit)
         else:
@@ -172,7 +175,10 @@ class Recommender:
                 details={
                     "harmony": harmony_parts[j],
                     "palette_hex": self.catalog.palette(i).to_hex(),
+                    "size_checked": bool(measurement) and bool(size_known[j]),
                     "raw": {k: float(v[j]) for k, v in comps.items() if v is not None},
                 },
             ))
-        return Result(recs, room, measurement, corners, len(idx), effective_weights(comps, weights), style_dict)
+        n_unknown = int((~size_known).sum()) if measurement else 0
+        return Result(recs, room, measurement, corners, len(idx), effective_weights(comps, weights), style_dict,
+                      n_size_unknown=n_unknown)

@@ -87,6 +87,18 @@ def test_size_filter_applies_with_manual_measurement():
     assert {"content", "preferred_color", "fit"} <= set(res.weights_used)
 
 
+def test_unknown_sizes_kept_and_flagged_when_measured():
+    cat = make_catalog()
+    cat.meta.loc[cat.meta["art_id"].isin(["a3", "a5"]), ["width_cm", "height_cm"]] = np.nan
+    rec = Recommender(cat, FakeEncoder())
+    res = rec.recommend(Query(room_image=room_photo(), use_a4=False, manual_size_cm=(60, 60)), top_n=40)
+    by_id = {r.art_id: r for r in res.recommendations}
+    assert res.n_size_unknown == 2
+    assert "a3" in by_id and not by_id["a3"].details["size_checked"]
+    assert all(r.details["size_checked"] for r in res.recommendations if r.art_id not in ("a3", "a5"))
+    assert all(np.isfinite(r.details["raw"]["fit"]) for r in res.recommendations)
+
+
 def test_user_box_overrides_detection():
     rec = Recommender(make_catalog(), FakeEncoder())
     res = rec.recommend(Query(room_image=room_photo(), use_a4=False, user_box=(150, 40, 90, 120)))

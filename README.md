@@ -116,6 +116,11 @@ tests/             unit + end-to-end tests (fake encoder, no downloads)
   partly to compensate.
 - Measurements need an A4 sheet on the same wall, or manual entry. Without either,
   the size check is skipped and only the shape of the space is used.
+- Physical sizes are known for only about 10% of EmoArt (12,945 of 132,664 artworks,
+  matched on Wikidata by artist + title; best for Baroque/Rococo/Romanticism, worst for
+  modern and Asian styles). By default, artworks of unknown size are still recommended
+  when the space is measured, ranked by shape only and marked "not checked" in the app;
+  set `FitConfig.keep_unknown_sizes = False` to recommend only pieces proven to fit.
 - The heuristic wall detector (used when the segmentation model is off) only works
   on plain walls.
 - Recommendations come from museum collections, so most pieces aren't for sale.

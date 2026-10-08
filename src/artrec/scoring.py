@@ -44,12 +44,12 @@ def effective_weights(components: dict[str, np.ndarray | None], weights: dict[st
 
 def size_filter(art_w_cm: np.ndarray, art_h_cm: np.ndarray, space_w_cm: float, space_h_cm: float,
                 cfg: FitConfig) -> np.ndarray:
-    """True for artworks that physically fit with a margin. Unknown sizes are excluded:
-    we can't tell the user a piece fits if we don't know how big it is."""
+    """True for artworks that physically fit with a margin. Artworks of unknown size
+    are kept only if cfg.keep_unknown_sizes (the app then marks them as unchecked)."""
     m = cfg.min_margin_cm
     known = ~(np.isnan(art_w_cm) | np.isnan(art_h_cm))
     fits = (art_w_cm + 2 * m <= space_w_cm) & (art_h_cm + 2 * m <= space_h_cm)
-    return known & fits
+    return (known & fits) | (~known & cfg.keep_unknown_sizes)
 
 
 def fill_score(art_w_cm: np.ndarray, art_h_cm: np.ndarray, space_w_cm: float, space_h_cm: float,

@@ -159,7 +159,9 @@ def test_size_filter_and_fill():
     w = np.array([50.0, 95.0, np.nan])
     h = np.array([40.0, 40.0, 30.0])
     keep = size_filter(w, h, 100, 80, cfg)
-    assert keep.tolist() == [True, False, False]   # too wide with margin; unknown size
+    assert keep.tolist() == [True, False, True]    # too wide with margin; unknown size kept
+    strict = size_filter(w, h, 100, 80, FitConfig(keep_unknown_sizes=False))
+    assert strict.tolist() == [True, False, False]
     f = fill_score(np.array([70.0, 20.0]), np.array([10.0, 10.0]), 100, 80, cfg)
     assert f[0] == 1.0 and f[1] < 0.2
 
