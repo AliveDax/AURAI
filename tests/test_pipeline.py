@@ -99,6 +99,19 @@ def test_unknown_sizes_kept_and_flagged_when_measured():
     assert all(np.isfinite(r.details["raw"]["fit"]) for r in res.recommendations)
 
 
+def test_no_fit_message_explains_why():
+    from artrec.config import Settings, FitConfig
+    strict = Settings(fit=FitConfig(keep_unknown_sizes=False))
+    cat = make_catalog()
+    res = Recommender(cat, FakeEncoder(), settings=strict).recommend(
+        Query(room_image=room_photo(), use_a4=False, manual_size_cm=(15, 15)))
+    assert not res.recommendations and "40 artworks with a recorded size" in res.message
+    cat.meta[["width_cm", "height_cm"]] = np.nan
+    res = Recommender(cat, FakeEncoder(), settings=strict).recommend(
+        Query(room_image=room_photo(), use_a4=False, manual_size_cm=(100, 100)))
+    assert not res.recommendations and "have a recorded size" in res.message
+
+
 def test_user_box_overrides_detection():
     rec = Recommender(make_catalog(), FakeEncoder())
     res = rec.recommend(Query(room_image=room_photo(), use_a4=False, user_box=(150, 40, 90, 120)))

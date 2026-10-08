@@ -90,6 +90,15 @@ class Recommender:
         e = self.encoder.encode_prompt_ensemble(templates, text)
         return self.catalog.embeddings[idx] @ e
 
+    def _no_fit_message(self, art_w: np.ndarray, art_h: np.ndarray, m: Measurement) -> str:
+        n_known = int((~(np.isnan(art_w) | np.isnan(art_h))).sum())
+        if n_known == 0:
+            return ("None of the artworks in the catalog have a recorded size, so none can be checked "
+                    "against your wall. Skip the size check, or allow artworks of unknown size.")
+        return (f"None of the {n_known} artworks with a recorded size fit a {m.width_cm:.0f} × "
+                f"{m.height_cm:.0f} cm space (leaving {self.s.fit.min_margin_cm:.0f} cm around it). "
+                "Try a larger space or check the measurement.")
+
     # -- main entry --------------------------------------------------------------
 
     def recommend(self, q: Query, top_n: int | None = None, weights: dict | None = None) -> Result:
@@ -123,7 +132,7 @@ class Recommender:
         style_dict = dict(sorted(zip(self.style_names, style_p.round(3).tolist()), key=lambda kv: -kv[1]))
         if len(idx) == 0:
             return Result([], room, measurement, corners, 0, {}, style_dict,
-                          "No artworks in the catalog fit this space. Try a larger space or check the measurement.")
+                          self._no_fit_message(art_w, art_h, measurement))
 
         # 4) Component scores (None = input not given -> weight redistributed)
         comps: dict[str, np.ndarray | None] = {}
