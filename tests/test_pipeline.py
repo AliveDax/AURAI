@@ -73,9 +73,12 @@ def test_end_to_end_ranks_and_explains():
     assert res.room.space_box is not None and res.room.space_source == "detected"
     assert len(res.recommendations) == 5
     top_ids = [r.art_id for r in res.recommendations]
-    assert top_ids[0] == "a3"                 # calm-looking, harmonious, labelled calm
-    full = [r.art_id for r in rec.recommend(Query(room_image=room_photo(), use_a4=False), top_n=40).recommendations]
-    assert full.index("a7") > 0               # identical but labelled 'sad': label + comfort penalty push it down
+    every = rec.recommend(Query(room_image=room_photo(), use_a4=False), top_n=40).recommendations
+    match = {r.art_id: r.details["mood"]["match"] for r in every}
+    # looks calm to CLIP and is labelled calm (though bright orange, which colour psychology reads as lively)
+    assert match["a3"] >= np.percentile(list(match.values()), 75)
+    full = [r.art_id for r in every]
+    assert full.index("a7") > full.index("a3")  # identical but labelled 'sad': label + comfort penalty push it down
     r0 = res.recommendations[0]
     assert {"emotion", "harmony", "surroundings"} <= set(r0.contributions)
     assert abs(sum(res.weights_used.values()) - 1) < 1e-9

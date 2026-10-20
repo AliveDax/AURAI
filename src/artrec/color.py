@@ -202,9 +202,10 @@ def room_harmony(art: Palette, wall: Palette, decor: Palette | None, cfg: ColorC
 
 def palette_mood_stats(p: Palette) -> dict:
     """Warmth (-1 cool .. +1 warm), mean lightness L* and mean chroma of a palette.
-    Warm hues (red-orange-yellow) sit around 60 degrees in LCh; grey-ish colours count less."""
+    Warm hues (red-orange-yellow) sit around 60 degrees in LCh; grey-ish colours count less,
+    but muted browns (chroma ~15-25, typical of old varnished paintings) still read as warm."""
     lch = p.lch
-    strength = np.clip(lch[:, 1] / 40.0, 0, 1)
+    strength = np.clip(lch[:, 1] / 25.0, 0, 1)
     warmth = float((p.weights * strength * np.cos(np.radians(lch[:, 2] - 60.0))).sum())
     return {"warmth": warmth, "light": float((p.weights * lch[:, 0]).sum()),
             "chroma": float((p.weights * lch[:, 1]).sum())}

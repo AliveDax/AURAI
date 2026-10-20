@@ -209,6 +209,22 @@ function setStatus(mode) {
 // ---------------------------------------------------------------- results
 const slug = (t) => (t || "untitled").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 28) + ".jpg";
 const LEDS = 10;
+const titleCase = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+function moodMeter(m) {
+  // "Cozy · 55% match" with an LED bar; then what else it feels like
+  const pct = Math.round(m.match * 100);
+  const name = m.requested.map(titleCase).join(" + ");
+  const bar = el("span", { className: "leds pos big", title: `${pct}%` });
+  const n = Math.round((pct / 100) * LEDS);
+  for (let i = 0; i < LEDS; i++) bar.append(el("i", { className: i < n ? "on" : "" }));
+  const others = m.feels.filter((f) => !m.requested.includes(f.mood)).slice(0, 2)
+    .map((f) => `${f.mood} ${Math.round(f.p * 100)}%`).join(" · ");
+  return el("div", { className: "mood-meter" }, [
+    el("div", { className: "mood-row" }, [el("span", { className: "mood-name", textContent: name }), bar,
+      el("b", { className: "mood-pct", textContent: `${pct}%` })]),
+    el("p", { className: "mood-also", textContent: others ? `Also feels: ${others}` : "" }),
+  ]);
+}
 function leds(v, maxAbs) {
   const n = Math.max(1, Math.round((Math.abs(v) / maxAbs) * LEDS));
   const wrap = el("span", { className: `leds ${v >= 0 ? "pos" : "neg"}`, title: v.toFixed(2) });
@@ -274,6 +290,7 @@ function render(d) {
   list.replaceChildren();
   $("results-title").hidden = !d.recommendations.length;
   $("count").textContent = `${d.recommendations.length} of ${d.n_candidates}`;
+  $("mood-help").hidden = !d.recommendations.length;
   const tpl = $("card-tpl");
   const maxAbs = Math.max(0.01, ...d.recommendations.flatMap((r) => r.reasons.map((x) => Math.abs(x.value))));
   for (const r of d.recommendations) {
@@ -287,7 +304,8 @@ function render(d) {
     const tags = card.querySelector(".tags");
     const tag = (text, cls = "") => tags.append(el("span", { className: `tag ${cls}`, textContent: text }));
     if (r.style) tag(r.style);
-    if (r.emotion) tag(r.emotion);
+    const top = r.mood?.feels?.[0];
+    if (top) tag(`feels ${top.mood}`);
     if (r.width_cm && r.height_cm) {
       tag(cm(r.width_cm, r.height_cm));
       if (d.measurement) tag("✓ fits", "ok");
@@ -297,6 +315,7 @@ function render(d) {
     } else {
       tag("size unknown");
     }
+    if (r.mood) card.querySelector(".mood-meter").replaceWith(moodMeter(r.mood));
     card.querySelector(".palette").append(...r.palette.map((h) => el("i", { style: `background:${h}` })));
     const viewBtn = card.querySelector(".view-on-wall");
     viewBtn.hidden = !r.placement;

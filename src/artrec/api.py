@@ -177,6 +177,10 @@ def create_app(recommender: Recommender | None = None, load=None) -> FastAPI:
                     "image_url": f"/api/art/{quote(r.art_id)}.jpg",  # ids contain spaces
                     "placement": placement(r),
                     "score": round(r.score, 3),
+                    # How strongly it conveys the requested mood(s), and its strongest feelings
+                    "mood": {"requested": r.details["mood"]["requested"],
+                             "match": round(r.details["mood"]["match"], 3),
+                             "feels": [{"mood": n, "p": round(p, 3)} for n, p in r.details["mood"]["feels"]]},
                     "reasons": [{"key": k, "label": EXPLANATION_LABELS.get(k, k), "value": round(v, 3)}
                                 for k, v in sorted(r.contributions.items(), key=lambda kv: -kv[1])],
                 }

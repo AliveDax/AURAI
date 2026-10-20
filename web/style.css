@@ -354,6 +354,14 @@ details[open] summary::before { transform: rotate(90deg); }
 .leds.pos i.on { background: var(--blue); border-color: var(--blue-deep); box-shadow: 0 0 4px color-mix(in srgb, var(--blue) 60%, transparent); }
 .leds.neg i.on { background: var(--pink); border-color: color-mix(in srgb, var(--pink) 70%, #000); box-shadow: 0 0 4px color-mix(in srgb, var(--pink) 60%, transparent); }
 
+.mood-meter { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--well); }
+.mood-row { display: flex; align-items: center; gap: 10px; }
+.mood-name { font: 10px/1 var(--pixel); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); flex: 1; }
+.mood-pct { font-variant-numeric: tabular-nums; font-size: 15px; min-width: 3ch; text-align: right; }
+.leds.big i { width: 9px; height: 14px; }
+.mood-also { margin: 0; font-size: 12.5px; color: var(--muted); }
+.mood-also:empty { display: none; }
+.mood-help { margin: -4px 0 0; font-size: 12.5px; color: var(--muted); }
 .credit { margin: 4px 0 0; text-align: center; font: 9.5px/1.6 var(--pixel); letter-spacing: .04em; color: var(--muted); }
 
 /* ---------------------------------------------------------------- loading + errors */

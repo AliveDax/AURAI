@@ -102,11 +102,13 @@ class FitConfig:
 
 @dataclass
 class MoodConfig:
-    """How the mood score is built. CLIP alone is weak at emotion, so it is blended with
-    EmoArt's (human-verified) emotion labels and with colour psychology."""
-    clip: float = 0.4     # CLIP: artwork vs descriptive phrases for the mood
-    label: float = 0.3    # EmoArt label is one of the mood's emotions (or same valence/arousal)
-    colour: float = 0.3   # warmth, lightness and colourfulness that suit the mood
+    """How the mood percentages are built (see mood.py). CLIP alone is weak at emotion, so it
+    is blended with EmoArt's (human-verified) emotion labels and with colour psychology.
+    More label weight makes nearly everything 'calm' (65% of EmoArt is labelled calm); less
+    lets dark, varnished old paintings read as melancholic. 0.35/0.40/0.25 balances the two."""
+    clip: float = 0.35    # CLIP: artwork vs descriptive phrases for each mood
+    label: float = 0.40   # EmoArt label: P(label | mood)
+    colour: float = 0.25  # warmth, lightness and colourfulness that suit each mood
 
 
 @dataclass

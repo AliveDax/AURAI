@@ -214,3 +214,23 @@ def test_mood_words_map_to_profiles():
     from artrec.prompts import mood_profiles
     assert mood_profiles("calm, cosy") == ["calm", "cozy"]
     assert mood_profiles("something else") == []
+
+
+def test_mood_percentages_sum_to_one_and_follow_the_labels():
+    import pandas as pd
+    from artrec.catalog import Catalog
+    from artrec.config import MoodConfig
+    from artrec.mood import MoodModel
+    rng = np.random.default_rng(0)
+    meta = pd.DataFrame({"emotion": ["sad", "excited"], "valence": ["Negative", "Positive"], "arousal": ["Low", "High"]})
+    emb = rng.normal(size=(2, 8)); emb /= np.linalg.norm(emb, axis=1, keepdims=True)
+    lab = np.zeros((2, 3, 3)); w = np.zeros((2, 3)); lab[:, 0] = [50, 0, 0]; w[:, 0] = 1
+    cat = Catalog(meta, emb, lab, w)
+
+    class Enc:
+        def encode_texts(self, texts):
+            return np.tile(np.eye(8)[0], (len(texts), 1))  # every phrase the same: CLIP can't tell moods apart
+
+    names, P = MoodModel(cat, Enc(), MoodConfig(clip=0.0, label=1.0, colour=0.0)).distribution(np.arange(2))
+    assert np.allclose(P.sum(1), 1)
+    assert names[P[0].argmax()] == "melancholic" and names[P[1].argmax()] in {"energetic", "cheerful"}
