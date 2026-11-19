@@ -1,0 +1,14 @@
+dominant_emotion,valence,arousal,n
+Calm,Positive,Low,2872
+Excited,Positive,High,1240
+Contentment,Positive,Low,692
+Sad,Negative,Low,216
+Alarmed,Negative,High,207
+Frustrated,Negative,High,157
+Happy,Positive,High,50
+Annoyed,Negative,High,27
+Bored,Negative,Low,25
+Aroused,Positive,High,24
+Tired,Negative,Low,19
+Glad,Positive,Low,2
+Annoyed,Negative,Low,1

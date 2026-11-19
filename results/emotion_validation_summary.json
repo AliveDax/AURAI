@@ -1,0 +1,90 @@
+{
+  "model": "ViT-L-14-336 / openai",
+  "labels": {
+    "Calm": 2872,
+    "Excited": 1240,
+    "Contentment": 692,
+    "Sad": 216,
+    "Alarmed": 207,
+    "Frustrated": 157,
+    "Happy": 50,
+    "Annoyed": 28,
+    "Bored": 25,
+    "Aroused": 24,
+    "Tired": 19,
+    "Glad": 2
+  },
+  "label_source": "GPT-4o annotations (EmoArt), not human labels",
+  "e1": {
+    "bare word": {
+      "recall@1": 0.2375,
+      "recall@2": 0.3747,
+      "recall@3": 0.4789,
+      "recall@5": 0.6316,
+      "accuracy": 0.2375,
+      "balanced_accuracy": 0.1906,
+      "macro_f1": 0.1001
+    },
+    "single template": {
+      "recall@1": 0.1922,
+      "recall@2": 0.3238,
+      "recall@3": 0.4393,
+      "recall@5": 0.6244,
+      "accuracy": 0.1922,
+      "balanced_accuracy": 0.1765,
+      "macro_f1": 0.1101
+    },
+    "template ensemble": {
+      "recall@1": 0.1732,
+      "recall@2": 0.2979,
+      "recall@3": 0.4062,
+      "recall@5": 0.5703,
+      "accuracy": 0.1732,
+      "balanced_accuracy": 0.17,
+      "macro_f1": 0.103
+    },
+    "baseline: chance": {
+      "recall@1": 0.0833,
+      "recall@2": 0.1667,
+      "recall@3": 0.25,
+      "recall@5": 0.4167,
+      "accuracy": 0.0833,
+      "balanced_accuracy": 0.0833,
+      "macro_f1": NaN
+    },
+    "baseline: majority": {
+      "recall@1": 0.5192,
+      "recall@2": 0.7433,
+      "recall@3": 0.8684,
+      "recall@5": 0.9449,
+      "accuracy": 0.5192,
+      "balanced_accuracy": 0.0833,
+      "macro_f1": 0.057
+    }
+  },
+  "e1_best_form_by_macro_f1": "single template",
+  "e2_macro_over_emotions": {
+    "raw text": {
+      "mean_P@10": 0.1817,
+      "mean_P@20": 0.1908,
+      "min_P@10": 0.0667,
+      "min_P@20": 0.0958,
+      "lift_P@20": 3.4623
+    },
+    "template ensemble": {
+      "mean_P@10": 0.19,
+      "mean_P@20": 0.2,
+      "min_P@10": 0.0917,
+      "min_P@20": 0.1083,
+      "lift_P@20": 3.5813
+    }
+  },
+  "e3_macro_over_emotions": {
+    "a) emotion only": 0.175,
+    "b) blend": 0.11,
+    "c) split": 0.1012
+  },
+  "e3_better_text_mode_for_emotion_precision": "blend",
+  "config_text_mode": "split",
+  "e3_note": "E3 only measures whether the EMOTION survives adding a subject; whether the subject itself is found is not measured (EmoArt has no subject labels)."
+}

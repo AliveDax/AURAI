@@ -1,0 +1,121 @@
+emotion,paraphrase,mode,prevalence,P@10,P@20
+Calm,peaceful,raw text,0.5191612436731743,0.8,0.7
+Calm,peaceful,template ensemble,0.5191612436731743,0.8,0.8
+Calm,serene and tranquil,raw text,0.5191612436731743,0.8,0.85
+Calm,serene and tranquil,template ensemble,0.5191612436731743,0.9,0.95
+Calm,"a quiet, still atmosphere",raw text,0.5191612436731743,0.5,0.6
+Calm,"a quiet, still atmosphere",template ensemble,0.5191612436731743,0.6,0.7
+Calm,soothing and restful,raw text,0.5191612436731743,0.5,0.6
+Calm,soothing and restful,template ensemble,0.5191612436731743,0.9,0.9
+Calm,I want to relax and unwind,raw text,0.5191612436731743,0.8,0.75
+Calm,I want to relax and unwind,template ensemble,0.5191612436731743,0.8,0.7
+Excited,exciting,raw text,0.22415039768618944,0.0,0.1
+Excited,exciting,template ensemble,0.22415039768618944,0.6,0.55
+Excited,thrilling and energetic,raw text,0.22415039768618944,0.5,0.55
+Excited,thrilling and energetic,template ensemble,0.22415039768618944,0.8,0.75
+Excited,full of lively energy,raw text,0.22415039768618944,0.4,0.35
+Excited,full of lively energy,template ensemble,0.22415039768618944,0.7,0.8
+Excited,dynamic and exhilarating,raw text,0.22415039768618944,0.9,0.85
+Excited,dynamic and exhilarating,template ensemble,0.22415039768618944,0.8,0.85
+Excited,something that gets my heart racing,raw text,0.22415039768618944,0.3,0.25
+Excited,something that gets my heart racing,template ensemble,0.22415039768618944,0.3,0.25
+Contentment,contented,raw text,0.12509038322487345,0.3,0.4
+Contentment,contented,template ensemble,0.12509038322487345,0.0,0.0
+Contentment,satisfied and at ease,raw text,0.12509038322487345,0.2,0.35
+Contentment,satisfied and at ease,template ensemble,0.12509038322487345,0.1,0.2
+Contentment,cozy and comfortable,raw text,0.12509038322487345,0.1,0.15
+Contentment,cozy and comfortable,template ensemble,0.12509038322487345,0.3,0.3
+Contentment,a sense of quiet fulfillment,raw text,0.12509038322487345,0.2,0.15
+Contentment,a sense of quiet fulfillment,template ensemble,0.12509038322487345,0.1,0.15
+Contentment,I feel content with my life,raw text,0.12509038322487345,0.2,0.2
+Contentment,I feel content with my life,template ensemble,0.12509038322487345,0.0,0.1
+Sad,melancholy,raw text,0.039045553145336226,0.1,0.2
+Sad,melancholy,template ensemble,0.039045553145336226,0.3,0.35
+Sad,sorrowful and gloomy,raw text,0.039045553145336226,0.3,0.45
+Sad,sorrowful and gloomy,template ensemble,0.039045553145336226,0.2,0.35
+Sad,a feeling of grief and loss,raw text,0.039045553145336226,0.3,0.3
+Sad,a feeling of grief and loss,template ensemble,0.039045553145336226,0.4,0.45
+Sad,lonely and mournful,raw text,0.039045553145336226,0.2,0.45
+Sad,lonely and mournful,template ensemble,0.039045553145336226,0.3,0.3
+Sad,something that makes me want to cry,raw text,0.039045553145336226,0.0,0.05
+Sad,something that makes me want to cry,template ensemble,0.039045553145336226,0.1,0.2
+Alarmed,frightening,raw text,0.037418655097613884,0.5,0.55
+Alarmed,frightening,template ensemble,0.037418655097613884,0.4,0.3
+Alarmed,tense and fearful,raw text,0.037418655097613884,0.3,0.25
+Alarmed,tense and fearful,template ensemble,0.037418655097613884,0.1,0.2
+Alarmed,a sense of danger and panic,raw text,0.037418655097613884,0.4,0.4
+Alarmed,a sense of danger and panic,template ensemble,0.037418655097613884,0.5,0.35
+Alarmed,ominous and threatening,raw text,0.037418655097613884,0.1,0.1
+Alarmed,ominous and threatening,template ensemble,0.037418655097613884,0.2,0.1
+Alarmed,something shocking and disturbing,raw text,0.037418655097613884,0.5,0.35
+Alarmed,something shocking and disturbing,template ensemble,0.037418655097613884,0.3,0.35
+Frustrated,frustrated,raw text,0.028380332610267536,0.3,0.2
+Frustrated,frustrated,template ensemble,0.028380332610267536,0.1,0.1
+Frustrated,agitated and restless,raw text,0.028380332610267536,0.3,0.3
+Frustrated,agitated and restless,template ensemble,0.028380332610267536,0.1,0.05
+Frustrated,a feeling of struggle and conflict,raw text,0.028380332610267536,0.1,0.15
+Frustrated,a feeling of struggle and conflict,template ensemble,0.028380332610267536,0.0,0.1
+Frustrated,angry and tormented,raw text,0.028380332610267536,0.3,0.3
+Frustrated,angry and tormented,template ensemble,0.028380332610267536,0.1,0.1
+Frustrated,everything is going wrong,raw text,0.028380332610267536,0.2,0.15
+Frustrated,everything is going wrong,template ensemble,0.028380332610267536,0.2,0.2
+Happy,joyful,raw text,0.009038322487346349,0.0,0.0
+Happy,joyful,template ensemble,0.009038322487346349,0.0,0.05
+Happy,cheerful and playful,raw text,0.009038322487346349,0.2,0.15
+Happy,cheerful and playful,template ensemble,0.009038322487346349,0.0,0.0
+Happy,full of joy and laughter,raw text,0.009038322487346349,0.0,0.05
+Happy,full of joy and laughter,template ensemble,0.009038322487346349,0.0,0.05
+Happy,merry and uplifting,raw text,0.009038322487346349,0.0,0.0
+Happy,merry and uplifting,template ensemble,0.009038322487346349,0.0,0.05
+Happy,something that makes me smile,raw text,0.009038322487346349,0.0,0.0
+Happy,something that makes me smile,template ensemble,0.009038322487346349,0.0,0.0
+Annoyed,irritated,raw text,0.005061460592913955,0.1,0.05
+Annoyed,irritated,template ensemble,0.005061460592913955,0.1,0.1
+Annoyed,bothered and displeased,raw text,0.005061460592913955,0.1,0.05
+Annoyed,bothered and displeased,template ensemble,0.005061460592913955,0.1,0.05
+Annoyed,grumpy,raw text,0.005061460592913955,0.1,0.05
+Annoyed,grumpy,template ensemble,0.005061460592913955,0.1,0.1
+Annoyed,a feeling of irritation,raw text,0.005061460592913955,0.0,0.05
+Annoyed,a feeling of irritation,template ensemble,0.005061460592913955,0.1,0.05
+Annoyed,this really gets on my nerves,raw text,0.005061460592913955,0.0,0.0
+Annoyed,this really gets on my nerves,template ensemble,0.005061460592913955,0.0,0.0
+Bored,boring,raw text,0.004519161243673174,0.0,0.0
+Bored,boring,template ensemble,0.004519161243673174,0.0,0.0
+Bored,dull and monotonous,raw text,0.004519161243673174,0.0,0.0
+Bored,dull and monotonous,template ensemble,0.004519161243673174,0.0,0.0
+Bored,uninspired and tedious,raw text,0.004519161243673174,0.0,0.0
+Bored,uninspired and tedious,template ensemble,0.004519161243673174,0.0,0.0
+Bored,a feeling of boredom,raw text,0.004519161243673174,0.0,0.0
+Bored,a feeling of boredom,template ensemble,0.004519161243673174,0.0,0.0
+Bored,nothing interesting is happening,raw text,0.004519161243673174,0.0,0.0
+Bored,nothing interesting is happening,template ensemble,0.004519161243673174,0.0,0.0
+Aroused,stimulating,raw text,0.004338394793926247,0.0,0.0
+Aroused,stimulating,template ensemble,0.004338394793926247,0.0,0.0
+Aroused,energized and alert,raw text,0.004338394793926247,0.0,0.0
+Aroused,energized and alert,template ensemble,0.004338394793926247,0.0,0.0
+Aroused,intense and passionate,raw text,0.004338394793926247,0.0,0.0
+Aroused,intense and passionate,template ensemble,0.004338394793926247,0.0,0.0
+Aroused,stirring and invigorating,raw text,0.004338394793926247,0.0,0.0
+Aroused,stirring and invigorating,template ensemble,0.004338394793926247,0.0,0.0
+Aroused,wide awake and buzzing with energy,raw text,0.004338394793926247,0.0,0.0
+Aroused,wide awake and buzzing with energy,template ensemble,0.004338394793926247,0.0,0.0
+Tired,weary,raw text,0.0034345625451916123,0.0,0.0
+Tired,weary,template ensemble,0.0034345625451916123,0.0,0.0
+Tired,exhausted and drained,raw text,0.0034345625451916123,0.0,0.0
+Tired,exhausted and drained,template ensemble,0.0034345625451916123,0.0,0.0
+Tired,sleepy and drowsy,raw text,0.0034345625451916123,0.0,0.0
+Tired,sleepy and drowsy,template ensemble,0.0034345625451916123,0.0,0.0
+Tired,a feeling of fatigue,raw text,0.0034345625451916123,0.0,0.0
+Tired,a feeling of fatigue,template ensemble,0.0034345625451916123,0.0,0.0
+Tired,I am completely worn out,raw text,0.0034345625451916123,0.0,0.0
+Tired,I am completely worn out,template ensemble,0.0034345625451916123,0.0,0.05
+Glad,pleased,raw text,0.00036153289949385393,0.0,0.0
+Glad,pleased,template ensemble,0.00036153289949385393,0.0,0.0
+Glad,pleasant and grateful,raw text,0.00036153289949385393,0.0,0.0
+Glad,pleasant and grateful,template ensemble,0.00036153289949385393,0.0,0.0
+Glad,relieved and glad,raw text,0.00036153289949385393,0.0,0.0
+Glad,relieved and glad,template ensemble,0.00036153289949385393,0.0,0.0
+Glad,a gently happy feeling,raw text,0.00036153289949385393,0.0,0.0
+Glad,a gently happy feeling,template ensemble,0.00036153289949385393,0.0,0.0
+Glad,I am glad things worked out,raw text,0.00036153289949385393,0.0,0.0
+Glad,I am glad things worked out,template ensemble,0.00036153289949385393,0.0,0.0

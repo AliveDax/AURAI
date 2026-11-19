@@ -1,0 +1,13 @@
+{
+  "model": "ViT-L-14-336",
+  "pretrained": "openai",
+  "rows": 5532,
+  "dim": 768,
+  "embedded_this_run": 5532,
+  "seconds": 1374.6,
+  "img_per_s": 4.0,
+  "peak_vram_gb": 2.21,
+  "mean_cos_same_style": 0.6472,
+  "mean_cos_different_style": 0.537,
+  "cache_file": "embeddings/emb_ViT-L-14-336_openai.npy"
+}

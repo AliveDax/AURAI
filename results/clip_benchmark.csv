@@ -1,0 +1,2 @@
+model,pretrained,status,input_px,embed_dim,n_images,batch_size,load_s,weights_vram_gb,peak_vram_gb,cpu_decode_img_per_s,gpu_img_per_s,end_to_end_img_per_s,norm_min,norm_max,tokenizer_len_for_200_words,tokenizer_truncates
+ViT-L-14-336,openai,ok,336,768,50,32,7.8,1.59,2.21,67.0,18.3,14.4,1.0,1.0,77,True

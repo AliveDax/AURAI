@@ -1,0 +1,32 @@
+{
+  "entries": 5532,
+  "top_level_keys": {
+    "request_id": 5532,
+    "description": 5532,
+    "image_path": 5532
+  },
+  "dominant_emotion": {
+    "Calm": 2872,
+    "Excited": 1240,
+    "Contentment": 692,
+    "Sad": 216,
+    "Alarmed": 207,
+    "Frustrated": 157,
+    "Happy": 50,
+    "Annoyed": 28,
+    "Bored": 25,
+    "Aroused": 24,
+    "Tired": 19,
+    "Glad": 2
+  },
+  "valence": {
+    "Positive": 4880,
+    "Negative": 652
+  },
+  "arousal": {
+    "Low": 3827,
+    "High": 1705
+  },
+  "images_on_disk": 5543,
+  "exact_path_matches": 5532
+}

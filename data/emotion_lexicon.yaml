@@ -1,0 +1,55 @@
+# Emotion vocabulary.
+# Keys are the 12 real dominant_emotion labels read from dataset/annotation.json (step 1).
+# They follow Russell's valence/arousal circumplex, so e.g. "Aroused" means high-energy positive,
+# not sexual, and "Calm"/"Contentment"/"Glad" are close neighbours (all positive, low arousal).
+#
+#   prompt_word : the adjective used inside prompt templates ("a painting that feels {}").
+#                 Equal to the label except where the label is a noun or awkward in a sentence.
+#   synonyms    : surface forms a user might type. Used by text_parse.py (step 7) to recognise
+#                 the emotional part of the mood text. Not used by step 4 except as documentation.
+
+Calm:
+  prompt_word: calm
+  synonyms: [calm, calming, calmness, peaceful, peace, serene, serenity, tranquil, tranquility,
+             relaxing, relaxed, soothing, quiet, restful, gentle]
+  # "still" was removed: "a still life" is a painting genre, not a mood
+Excited:
+  prompt_word: excited
+  synonyms: [excited, exciting, excitement, thrilling, thrilled, energetic, lively, vibrant,
+             dynamic, exhilarating, electric]
+Contentment:
+  prompt_word: contented
+  synonyms: [content, contented, contentment, satisfied, satisfying, cozy, cosy, comfortable,
+             comforting, fulfilled, at ease, homely]
+Sad:
+  prompt_word: sad
+  synonyms: [sad, sadness, melancholy, melancholic, sorrowful, sorrow, gloomy, mournful,
+             grief, grieving, somber, sombre, lonely, depressing, heartbroken]
+Alarmed:
+  prompt_word: alarmed
+  synonyms: [alarmed, alarming, afraid, fearful, fear, frightening, frightened, scary, scared,
+             terrifying, panic, tense, threatening, ominous, shocking]
+Frustrated:
+  prompt_word: frustrated
+  synonyms: [frustrated, frustrating, frustration, agitated, angry, anger, restless, struggling,
+             conflicted, tormented, chaotic]
+Happy:
+  prompt_word: happy
+  synonyms: [happy, happiness, joyful, joy, cheerful, cheery, delightful, playful, merry, jolly,
+             uplifting]
+Annoyed:
+  prompt_word: annoyed
+  synonyms: [annoyed, annoying, irritated, irritating, bothered, displeased, grumpy, irked]
+Bored:
+  prompt_word: bored
+  synonyms: [bored, boring, boredom, dull, monotonous, tedious, uninspired, mundane]
+Aroused:
+  prompt_word: aroused
+  synonyms: [aroused, stimulating, stimulated, intense, passionate, stirring, alert, energized,
+             invigorating]
+Tired:
+  prompt_word: tired
+  synonyms: [tired, weary, exhausted, sleepy, drowsy, fatigued, drained, worn out]
+Glad:
+  prompt_word: glad
+  synonyms: [glad, pleased, pleasant, grateful, relieved, warmhearted]

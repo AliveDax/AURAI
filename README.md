@@ -1,148 +1,138 @@
-# Art for your wall
+# Mood & colour aware art recommendation
 
-Take a photo of the wall where you want to hang art. The system finds the empty
-space, reads the colours and style of the room around it, and recommends real
-artworks that suit the space, the room's decor and the mood you want, so the
-room feels more comfortable.
+Upload photos of a room, optionally type a mood or subject ("calming blue forest") and pick a
+colour. The system ranks the 5,532 real artworks of EmoArt-5k and explains every pick
+(e.g. "colour 52%, emotion 31%, style 17%").
 
-The core is a matching and scoring system built on a pretrained CLIP model
-(ViT-L/14@336, OpenAI weights, **no fine-tuning**) plus our own explainable
-logic for colour, geometry, sizing and ranking.
+No model is trained and CLIP is not fine-tuned. A frozen pretrained CLIP (`open_clip`,
+ViT-L-14-336, OpenAI weights) only turns images and text into embeddings. Everything else is our
+own code: text parsing, colour harmony rules, score normalization, fusion and validation.
 
-## How it works
-
-```
-room photo ─┬─ wall segmentation (pretrained SegFormer, ADE20K "wall") ─ largest empty rectangle
-            │      └─ A4 sheet on the wall → homography → space size in cm ─ size filter
-            ├─ wall colours near the space ──┐
-            ├─ decor colours (non-wall) ─────┴─ colour harmony (our colour theory, LAB/LCh)
-            └─ surroundings (wall greyed out) ─ CLIP ─ room style ─ art prompts ─ style score
-description ─ CLIP text → artwork  .............................. content score
-colour      ─ CIEDE2000 distance to artwork palette ............. preferred-colour score
-mood        ─ CLIP mood phrases + EmoArt emotion labels + colour psychology ... emotion score
-            + comfort prior: negative-emotion artworks pushed down unless the user asks for that mood
-```
-
-Each score is z-scored across the candidates for that query, then combined with
-weights from `src/artrec/config.py`. The plan started at style 40%, colour 35%,
-emotion 25%; in use the room's style outvoted the mood the user picked, so mood is
-now the largest term (style 28%, colour 30%, emotion 35%, fit 7%). A named subject
-("a dog") filters the candidates first: only artworks that clearly show it are ranked.
-A missing preferred colour gives its weight to room harmony; other missing inputs are
-shared out among the rest. The top picks are re-ranked for variety (one per artist,
-near-duplicates pushed apart). Every recommendation shows how much each score contributed.
-
-| Score | Source | Ours or pretrained |
+| Component | How | Default weight |
 |---|---|---|
-| Content (description) | CLIP text–image similarity relative to a generic prompt, + EmoArt description keywords as a filter | pretrained + **ours** |
-| Surroundings style | CLIP zero-shot room style → art-style prompts | pretrained + our prompt design |
-| Colour harmony | k-means in LAB; echo of decor accent colours, hue templates, contrast with the wall | **ours** |
-| Preferred colour | CIEDE2000 distance weighted by palette share | **ours** |
-| Emotion | CLIP vs descriptive mood phrases, EmoArt emotion labels, colour psychology (warmth, lightness, chroma) | pretrained + **ours** |
-| Comfort prior | EmoArt emotion labels (valence) | **ours** |
-| Fit | fill ratio (ideal 60–75%) + aspect-ratio match | **ours** |
-| Size filter | homography from A4 sheet, or manual entry | **ours** |
+| style | cosine(room photo embedding, artwork embedding), image to image | 0.20 |
+| color | colour-harmony rules between the room palette and the artwork palette | 0.25 |
+| emotion | cosine(emotion words from your text, artwork) | 0.20 |
+| description | cosine(subject words from your text, artwork) | 0.35 |
 
-## Setup
+The first design used 0.30 / 0.35 / 0.20 / 0.15. The description weight was raised
+because most users give a description and CLIP matches subjects well.
 
-```bash
-python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
-# Install PyTorch for your CUDA version first: https://pytorch.org/get-started/locally/
-pip install -r requirements.txt
-pip install -e .
-pytest                                                  # logic tests, no GPU or downloads needed
+Components without input are dropped and the weights renormalized. All weights and thresholds are
+placeholders in `config.yaml` until the human survey is analysed.
+
+**If you give a description** ("sea", "calm forest"), content has priority. Paintings that clearly
+show it come first, ordered by the normal score; then everything else. So "sea" gives sea paintings,
+not abstracts, unless you ask for "abstract".
+
+**If you ask for a colour** (picker, or a colour word like "teal"), ranking happens in two steps
+(`color_reference_mode: two_step`):
+1. The first 5 picks must contain that colour or a shade of it (navy and sky blue count as blue).
+   They are ordered half by how much of the colour they contain and half by the normal score, so
+   your description and mood still decide between them.
+2. Everything after that is the normal ranking.
+
+**Colour + description** ("red sea"): the description has priority.
+- Only paintings that clearly show the subject can be colour picks. A painting "clearly shows" the
+  subject when CLIP's match to the description, minus its match to a generic "a painting", is well
+  above the catalog average.
+- If no sea painting is red, the colour slots go to sea paintings in the closest shade (orange,
+  maroon), never to red paintings of something else.
+- The rest of the list puts the other sea paintings first.
+
+Without a colour, only the normal ranking is used, with harmony between each artwork and the room's colours.
+
+## Setup (Windows, PowerShell)
+
+```powershell
+python -m venv venv                       # only if venv\ is missing
+.\venv\Scripts\python.exe -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+.\venv\Scripts\python.exe -m pip install -r requirements.txt
+.\venv\Scripts\python.exe -m pip install -e .
+.\venv\Scripts\python.exe -m pytest -q    # fast, no GPU needed
 ```
 
-## Workflow
+Data: EmoArt-5k images + `annotation.json` in `dataset/` (extract `Images.tar.gz` with
+`python extract_emoart.py`). Put 10-15 varied room photos in `data/rooms/`.
 
-```bash
-# 1. Data (EmoArt is CC BY-NC 4.0; see data/emoart/README.md)
-python scripts/download_emoart.py              # downloads and prints the schema
-python scripts/build_catalog.py --metadata-only
+## Pipeline
 
-# 2. Recover physical sizes (EmoArt has none)
-python scripts/enrich_dimensions.py --catalog data/cache/metadata_all.parquet
-
-# 3. Build the catalog: palettes + CLIP embeddings (GPU, run once)
-python scripts/build_catalog.py --per-style 100 --require-dimensions
-
-# 4. Demo
-streamlit run app/streamlit_app.py
+```powershell
+.\venv\Scripts\python.exe scripts/00_check_env.py         # environment, GPU, packages, data
+.\venv\Scripts\python.exe scripts/01_inspect_dataset.py   # real JSON keys and emotion labels
+.\venv\Scripts\python.exe scripts/02_build_catalog.py     # -> data/catalog.csv
+.\venv\Scripts\python.exe scripts/03_benchmark_clip.py    # speed + VRAM
+.\venv\Scripts\python.exe scripts/04_embed_artworks.py    # -> embeddings/ (once, ~6 min, resumable)
+.\venv\Scripts\python.exe scripts/05_extract_palettes.py  # -> embeddings/ (once, ~10 min)
+.\venv\Scripts\python.exe scripts/06_validate_emotion.py  # E1-E3 -> results/
+.\venv\Scripts\python.exe scripts/07_make_ablation_outputs.py
+.\venv\Scripts\python.exe scripts/08_make_survey.py
+.\venv\Scripts\python.exe scripts/09_analyze_survey.py results/survey/responses.csv
+.\venv\Scripts\python.exe scripts/10_fit_weights.py results/survey/responses.csv   # optional
 ```
 
-If `build_catalog.py` can't auto-detect a column, it prints its mapping; fix it
-with e.g. `--map emotion=annotation.emotion.domain_emotion`.
+## Use it
 
-## Phone app
+Easiest: double-click **`start_app.bat`** in the project folder. The web page opens in your browser
+by itself; close the black window to stop it.
 
-The app runs on a phone as a web app: the models stay on a server (`artrec.api`,
-FastAPI), and the phone opens a mobile page (`web/`) that takes the photo, shrinks it
-to 1600 px before uploading, and shows the results. It can be added to the home
-screen (it has a web manifest and icons).
+The page shows the top 15 recommendations. The **Save** button downloads one image: your room
+photo on top and the top 10 artworks below, in order, on a white page.
 
-```bash
-uvicorn artrec.api:app --host 0.0.0.0 --port 8000
+**See it on my wall** (button under each recommendation) hangs that artwork on your room photo at
+its real size. Click on the wall where its centre should go; click again to move it.
+- Scale: the photo is assumed to be taken straight at the wall from 6 ft (editable). The 35 mm-equivalent
+  focal length from the photo's EXIF turns that into pixels per inch. Without EXIF (screenshots, photos
+  sent through WhatsApp) a typical phone camera (26 mm) is assumed.
+- Size: EmoArt has no real sizes, so you type width and height (cm or inches; height follows the
+  artwork's proportions unless you untick that). Known sizes can be added in `data/artwork_sizes.csv`
+  (`image_path,width_cm,height_cm`), and those artworks are then placed without asking.
+- Shadow: the brightness slope of the wall around the spot (furniture left out) gives the light
+  direction. The shadow falls away from the light, straight down under even light.
+- This is display only (`src/artrec/wall_preview.py`, `wall_preview:` in `config.yaml`). It does not
+  change the recommendations or their scores.
+
+Or from PowerShell:
+
+```powershell
+.\venv\Scripts\python.exe main.py --room data/rooms/synthetic_living_room.png --mood "calming forest" --top 5
+.\venv\Scripts\python.exe -m streamlit run app/streamlit_app.py   # basic web page in the browser
 ```
 
-Then open `http://<this computer's IP>:8000` on a phone on the same Wi-Fi. The first
-search after a restart takes ~20 s while the models load. Set `ARTREC_NO_SEGMENTER=1`
-to skip the wall-segmentation model. "Add to Home Screen" as a full app needs HTTPS,
-i.e. a hosted server. The Streamlit demo (`app/streamlit_app.py`) is kept for development.
+### Emotion only (for the human check of CLIP's emotion matching)
 
-## Evaluation
+Double-click **`start_emotion_app.bat`**, type an emotion ("calm", "sad") and click Search. The
+page ranks all paintings by CLIP's emotion match alone: no room photo, style, colour or
+description. If the text also has colour or subject words, only the emotion words are used. The
+top 20 (`emotion_only.top_n` in `config.yaml`) are shown with their EmoArt label and cosine. The
+Save button downloads them as separate images plus `results.csv`, ready for a Google Form.
 
-| Level | Script | What it measures | Baseline |
-|---|---|---|---|
-| Component | `evaluate_emotion.py` | Emotion retrieval (precision/recall/lift@k) and classification (top-1/3, macro recall, valence balanced accuracy) against EmoArt labels | random / always-"calm" / chance |
-| Component | `evaluate_color_and_space.py` | Whether top-k results contain the requested colour | rate in a random artwork |
-| Component | `evaluate_color_and_space.py` | Empty-space detection (IoU vs hand-drawn box), measurement error vs tape measure | – |
-| System | `make_survey.py` → `analyze_survey.py` | Blind human ratings of system picks vs CLIP-only ablation vs random vs mismatched | Mann–Whitney U tests |
-
-Two things to keep in mind when reporting:
-
-- **EmoArt is skewed.** About 56% of labels are "calm", so a model that always says
-  "calm" gets 56% accuracy. Always report against the baselines the script prints,
-  and use macro recall and lift, not raw accuracy alone.
-- **The labels come from GPT-4o** (with human verification). The emotion test
-  measures agreement with those labels; the survey is the only purely human judgment.
-
-For the space tests, photograph a few rooms with an A4 sheet taped to the wall,
-draw the correct spot by hand and tape-measure it, then fill in
-`data/rooms/annotations.csv` (see `annotations_template.csv`).
-
-## Project layout
-
-```
-src/artrec/
-  config.py        every tunable number (weights, thresholds) in one place
-  color.py         palettes, harmony rules, preferred colour, colour parsing
-  room.py          wall segmentation, empty-space detection, room regions
-  measure.py       A4 detection and homography → centimetres
-  scoring.py       normalisation, weighting, size filter, fit scores
-  prompts.py       all CLIP prompts and the mood → EmoArt emotion mapping
-  clip_model.py    open_clip wrapper
-  catalog.py       precomputed catalog (metadata, embeddings, palettes)
-  recommender.py   end-to-end pipeline with per-score explanations
-  api.py           HTTP API for the phone app
-scripts/           data preparation, evaluation, survey
-web/               phone web app (served by artrec.api)
-app/               Streamlit demo
-tests/             unit + end-to-end tests (fake encoder, no downloads)
+```powershell
+.\venv\Scripts\python.exe main.py --emotion-only --mood calm --top 20
 ```
 
-## Known limitations
+## Layout
 
-- CLIP is moderately good at art emotion and weak at fine art-movement distinctions;
-  this is documented in prior work. Colour harmony and fit are our own logic,
-  partly to compensate.
-- Measurements need an A4 sheet on the same wall, or manual entry. Without either,
-  the size check is skipped and only the shape of the space is used.
-- Physical sizes are known for only about 10% of EmoArt (12,945 of 132,664 artworks,
-  matched on Wikidata by artist + title; best for Baroque/Rococo/Romanticism, worst for
-  modern and Asian styles). By default, artworks of unknown size are still recommended
-  when the space is measured, ranked by shape only and marked "not checked" in the app;
-  set `FitConfig.keep_unknown_sizes = False` to recommend only pieces proven to fit.
-- The heuristic wall detector (used when the segmentation model is off) only works
-  on plain walls.
-- Recommendations come from museum collections, so most pieces aren't for sale.
-  Prints and purchasable art are future work.
+```
+config.yaml          every tunable number
+main.py              CLI
+app/streamlit_app.py the whole UI (one basic page)
+app/emotion_app.py   emotion-only search, for the human emotion check
+src/artrec/          config, data_loader, clip_embed, color_extract, color_harmony,
+                     text_parse, scorer, recommend, wall_preview (artwork on the room photo)
+data/                catalog.csv, rooms/, color_words.yaml, emotion_lexicon.yaml, emotion_paraphrases.yaml
+dataset/             EmoArt-5k (not in git, never modified)
+embeddings/          cached CLIP embeddings + palettes (not in git)
+results/             all metrics, tables and figures
+```
+
+## Limitations
+
+- EmoArt's emotion labels come from GPT-4o (with verification), not human raters, and are skewed
+  (52% "Calm", only 2 "Glad"). Always compare against the baselines that 06 prints.
+- The style score measures the overall visual "vibe" of the room photo against each artwork. It
+  is not object detection or art-style classification.
+- Artist and title are recovered from file names (the annotations have neither), so some words stay glued.
+- Artwork size is deliberately not part of the ranking. It is only used by "See it on my wall".
+- "See it on my wall" assumes a straight-on, uncropped photo; a tilted photo or a wrong distance
+  makes the artwork look too big or too small.

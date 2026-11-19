@@ -1,0 +1,94 @@
+# Paraphrase queries for the emotion validation (E2/E3 in scripts/06_validate_emotion.py).
+# Test queries only. At inference a user's text is NOT limited to these; the 12 labels are just the
+# answer key. Each emotion gets >= 5 phrasings: single words, short phrases and a free-text sentence.
+# Color words (blue, warm-as-in-color, ...) are avoided on purpose: in the real system they are
+# routed to the color score, so they would muddy an emotion-only test.
+
+paraphrases:
+  Calm:
+    - peaceful
+    - serene and tranquil
+    - a quiet, still atmosphere
+    - soothing and restful
+    - I want to relax and unwind
+  Excited:
+    - exciting
+    - thrilling and energetic
+    - full of lively energy
+    - dynamic and exhilarating
+    - something that gets my heart racing
+  Contentment:
+    - contented
+    - satisfied and at ease
+    - cozy and comfortable
+    - a sense of quiet fulfillment
+    - I feel content with my life
+  Sad:
+    - melancholy
+    - sorrowful and gloomy
+    - a feeling of grief and loss
+    - lonely and mournful
+    - something that makes me want to cry
+  Alarmed:
+    - frightening
+    - tense and fearful
+    - a sense of danger and panic
+    - ominous and threatening
+    - something shocking and disturbing
+  Frustrated:
+    - frustrated
+    - agitated and restless
+    - a feeling of struggle and conflict
+    - angry and tormented
+    - everything is going wrong
+  Happy:
+    - joyful
+    - cheerful and playful
+    - full of joy and laughter
+    - merry and uplifting
+    - something that makes me smile
+  Annoyed:
+    - irritated
+    - bothered and displeased
+    - grumpy
+    - a feeling of irritation
+    - this really gets on my nerves
+  Bored:
+    - boring
+    - dull and monotonous
+    - uninspired and tedious
+    - a feeling of boredom
+    - nothing interesting is happening
+  Aroused:
+    - stimulating
+    - energized and alert
+    - intense and passionate
+    - stirring and invigorating
+    - wide awake and buzzing with energy
+  Tired:
+    - weary
+    - exhausted and drained
+    - sleepy and drowsy
+    - a feeling of fatigue
+    - I am completely worn out
+  Glad:
+    - pleased
+    - pleasant and grateful
+    - relieved and glad
+    - a gently happy feeling
+    - I am glad things worked out
+
+# E3: each emotion's prompt_word is combined with each subject ("calm forest", "sad village").
+# Subjects chosen to span common painting genres: landscape, seascape, city, flowers, portrait,
+# mountains, rural, animals, still life, abstract.
+e3_subjects:
+  - forest
+  - sea
+  - city street
+  - flowers
+  - woman
+  - mountains
+  - village
+  - horses
+  - still life with fruit
+  - abstract shapes

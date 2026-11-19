@@ -1,11 +1,13 @@
+# Minimal packaging so `pip install -e .` makes `import artrec` work from scripts/, app/ and tests/.
+# Dependencies live in requirements.txt (torch needs the CUDA index), not here.
 [build-system]
-requires = ["setuptools>=64"]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "artrec"
-version = "0.1.0"
-description = "Wall-aware art recommendation: pretrained CLIP + explainable colour, geometry and scoring logic"
+version = "0.2.0"
+description = "Mood & colour aware art recommendation: frozen pretrained CLIP + our own scoring"
 requires-python = ">=3.10"
 
 [tool.setuptools.packages.find]

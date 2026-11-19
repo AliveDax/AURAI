@@ -1,0 +1,10 @@
+config,mean shared of top-5
+all (default),5.0
+"all, none normalization",3.6666666666666665
+"all, rank normalization",2.6666666666666665
+style + emotion,1.3333333333333333
+color + emotion,1.0
+style + color,1.0
+color only,0.6666666666666666
+emotion only,0.0
+style only,0.0

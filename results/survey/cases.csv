@@ -1,0 +1,5 @@
+case_id,room,mood,question,n_items
+synthetic_living_room__calming,synthetic_living_room.png,calming,Mood: 'calming'. How well does each artwork suit this room and this mood? (1-5),7
+synthetic_living_room__joyful,synthetic_living_room.png,joyful,Mood: 'joyful'. How well does each artwork suit this room and this mood? (1-5),7
+synthetic_living_room__melancholic,synthetic_living_room.png,melancholic,Mood: 'melancholic'. How well does each artwork suit this room and this mood? (1-5),7
+synthetic_living_room__color,synthetic_living_room.png,,How well do each artwork's COLOURS suit this room? (1-5)  [room muted: True],3

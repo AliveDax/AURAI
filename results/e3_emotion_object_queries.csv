@@ -1,0 +1,361 @@
+emotion,subject,mode,query,P@20
+Calm,forest,a) emotion only,calm forest,0.75
+Calm,forest,b) blend,calm forest,0.95
+Calm,forest,c) split,calm forest,0.8
+Calm,sea,a) emotion only,calm sea,0.75
+Calm,sea,b) blend,calm sea,0.85
+Calm,sea,c) split,calm sea,0.75
+Calm,city street,a) emotion only,calm city street,0.75
+Calm,city street,b) blend,calm city street,0.6
+Calm,city street,c) split,calm city street,0.7
+Calm,flowers,a) emotion only,calm flowers,0.75
+Calm,flowers,b) blend,calm flowers,0.6
+Calm,flowers,c) split,calm flowers,0.65
+Calm,woman,a) emotion only,calm woman,0.75
+Calm,woman,b) blend,calm woman,0.5
+Calm,woman,c) split,calm woman,0.55
+Calm,mountains,a) emotion only,calm mountains,0.75
+Calm,mountains,b) blend,calm mountains,0.85
+Calm,mountains,c) split,calm mountains,0.8
+Calm,village,a) emotion only,calm village,0.75
+Calm,village,b) blend,calm village,0.7
+Calm,village,c) split,calm village,0.6
+Calm,horses,a) emotion only,calm horses,0.75
+Calm,horses,b) blend,calm horses,0.35
+Calm,horses,c) split,calm horses,0.8
+Calm,still life with fruit,a) emotion only,calm still life with fruit,0.75
+Calm,still life with fruit,b) blend,calm still life with fruit,0.45
+Calm,still life with fruit,c) split,calm still life with fruit,0.5
+Calm,abstract shapes,a) emotion only,calm abstract shapes,0.75
+Calm,abstract shapes,b) blend,calm abstract shapes,0.4
+Calm,abstract shapes,c) split,calm abstract shapes,0.6
+Excited,forest,a) emotion only,excited forest,0.55
+Excited,forest,b) blend,excited forest,0.3
+Excited,forest,c) split,excited forest,0.15
+Excited,sea,a) emotion only,excited sea,0.55
+Excited,sea,b) blend,excited sea,0.15
+Excited,sea,c) split,excited sea,0.1
+Excited,city street,a) emotion only,excited city street,0.55
+Excited,city street,b) blend,excited city street,0.3
+Excited,city street,c) split,excited city street,0.45
+Excited,flowers,a) emotion only,excited flowers,0.55
+Excited,flowers,b) blend,excited flowers,0.55
+Excited,flowers,c) split,excited flowers,0.5
+Excited,woman,a) emotion only,excited woman,0.55
+Excited,woman,b) blend,excited woman,0.0
+Excited,woman,c) split,excited woman,0.05
+Excited,mountains,a) emotion only,excited mountains,0.55
+Excited,mountains,b) blend,excited mountains,0.1
+Excited,mountains,c) split,excited mountains,0.0
+Excited,village,a) emotion only,excited village,0.55
+Excited,village,b) blend,excited village,0.3
+Excited,village,c) split,excited village,0.25
+Excited,horses,a) emotion only,excited horses,0.55
+Excited,horses,b) blend,excited horses,0.35
+Excited,horses,c) split,excited horses,0.35
+Excited,still life with fruit,a) emotion only,excited still life with fruit,0.55
+Excited,still life with fruit,b) blend,excited still life with fruit,0.5
+Excited,still life with fruit,c) split,excited still life with fruit,0.45
+Excited,abstract shapes,a) emotion only,excited abstract shapes,0.55
+Excited,abstract shapes,b) blend,excited abstract shapes,0.55
+Excited,abstract shapes,c) split,excited abstract shapes,0.45
+Contentment,forest,a) emotion only,contented forest,0.0
+Contentment,forest,b) blend,contented forest,0.05
+Contentment,forest,c) split,contented forest,0.1
+Contentment,sea,a) emotion only,contented sea,0.0
+Contentment,sea,b) blend,contented sea,0.0
+Contentment,sea,c) split,contented sea,0.05
+Contentment,city street,a) emotion only,contented city street,0.0
+Contentment,city street,b) blend,contented city street,0.15
+Contentment,city street,c) split,contented city street,0.1
+Contentment,flowers,a) emotion only,contented flowers,0.0
+Contentment,flowers,b) blend,contented flowers,0.0
+Contentment,flowers,c) split,contented flowers,0.05
+Contentment,woman,a) emotion only,contented woman,0.0
+Contentment,woman,b) blend,contented woman,0.2
+Contentment,woman,c) split,contented woman,0.25
+Contentment,mountains,a) emotion only,contented mountains,0.0
+Contentment,mountains,b) blend,contented mountains,0.1
+Contentment,mountains,c) split,contented mountains,0.15
+Contentment,village,a) emotion only,contented village,0.0
+Contentment,village,b) blend,contented village,0.3
+Contentment,village,c) split,contented village,0.3
+Contentment,horses,a) emotion only,contented horses,0.0
+Contentment,horses,b) blend,contented horses,0.3
+Contentment,horses,c) split,contented horses,0.15
+Contentment,still life with fruit,a) emotion only,contented still life with fruit,0.0
+Contentment,still life with fruit,b) blend,contented still life with fruit,0.2
+Contentment,still life with fruit,c) split,contented still life with fruit,0.2
+Contentment,abstract shapes,a) emotion only,contented abstract shapes,0.0
+Contentment,abstract shapes,b) blend,contented abstract shapes,0.1
+Contentment,abstract shapes,c) split,contented abstract shapes,0.1
+Sad,forest,a) emotion only,sad forest,0.3
+Sad,forest,b) blend,sad forest,0.05
+Sad,forest,c) split,sad forest,0.05
+Sad,sea,a) emotion only,sad sea,0.3
+Sad,sea,b) blend,sad sea,0.1
+Sad,sea,c) split,sad sea,0.15
+Sad,city street,a) emotion only,sad city street,0.3
+Sad,city street,b) blend,sad city street,0.15
+Sad,city street,c) split,sad city street,0.0
+Sad,flowers,a) emotion only,sad flowers,0.3
+Sad,flowers,b) blend,sad flowers,0.0
+Sad,flowers,c) split,sad flowers,0.0
+Sad,woman,a) emotion only,sad woman,0.3
+Sad,woman,b) blend,sad woman,0.3
+Sad,woman,c) split,sad woman,0.2
+Sad,mountains,a) emotion only,sad mountains,0.3
+Sad,mountains,b) blend,sad mountains,0.0
+Sad,mountains,c) split,sad mountains,0.0
+Sad,village,a) emotion only,sad village,0.3
+Sad,village,b) blend,sad village,0.05
+Sad,village,c) split,sad village,0.0
+Sad,horses,a) emotion only,sad horses,0.3
+Sad,horses,b) blend,sad horses,0.1
+Sad,horses,c) split,sad horses,0.05
+Sad,still life with fruit,a) emotion only,sad still life with fruit,0.3
+Sad,still life with fruit,b) blend,sad still life with fruit,0.05
+Sad,still life with fruit,c) split,sad still life with fruit,0.05
+Sad,abstract shapes,a) emotion only,sad abstract shapes,0.3
+Sad,abstract shapes,b) blend,sad abstract shapes,0.05
+Sad,abstract shapes,c) split,sad abstract shapes,0.0
+Alarmed,forest,a) emotion only,alarmed forest,0.2
+Alarmed,forest,b) blend,alarmed forest,0.05
+Alarmed,forest,c) split,alarmed forest,0.0
+Alarmed,sea,a) emotion only,alarmed sea,0.2
+Alarmed,sea,b) blend,alarmed sea,0.25
+Alarmed,sea,c) split,alarmed sea,0.15
+Alarmed,city street,a) emotion only,alarmed city street,0.2
+Alarmed,city street,b) blend,alarmed city street,0.15
+Alarmed,city street,c) split,alarmed city street,0.05
+Alarmed,flowers,a) emotion only,alarmed flowers,0.2
+Alarmed,flowers,b) blend,alarmed flowers,0.0
+Alarmed,flowers,c) split,alarmed flowers,0.0
+Alarmed,woman,a) emotion only,alarmed woman,0.2
+Alarmed,woman,b) blend,alarmed woman,0.05
+Alarmed,woman,c) split,alarmed woman,0.05
+Alarmed,mountains,a) emotion only,alarmed mountains,0.2
+Alarmed,mountains,b) blend,alarmed mountains,0.05
+Alarmed,mountains,c) split,alarmed mountains,0.05
+Alarmed,village,a) emotion only,alarmed village,0.2
+Alarmed,village,b) blend,alarmed village,0.05
+Alarmed,village,c) split,alarmed village,0.05
+Alarmed,horses,a) emotion only,alarmed horses,0.2
+Alarmed,horses,b) blend,alarmed horses,0.1
+Alarmed,horses,c) split,alarmed horses,0.1
+Alarmed,still life with fruit,a) emotion only,alarmed still life with fruit,0.2
+Alarmed,still life with fruit,b) blend,alarmed still life with fruit,0.0
+Alarmed,still life with fruit,c) split,alarmed still life with fruit,0.0
+Alarmed,abstract shapes,a) emotion only,alarmed abstract shapes,0.2
+Alarmed,abstract shapes,b) blend,alarmed abstract shapes,0.0
+Alarmed,abstract shapes,c) split,alarmed abstract shapes,0.0
+Frustrated,forest,a) emotion only,frustrated forest,0.1
+Frustrated,forest,b) blend,frustrated forest,0.05
+Frustrated,forest,c) split,frustrated forest,0.0
+Frustrated,sea,a) emotion only,frustrated sea,0.1
+Frustrated,sea,b) blend,frustrated sea,0.0
+Frustrated,sea,c) split,frustrated sea,0.0
+Frustrated,city street,a) emotion only,frustrated city street,0.1
+Frustrated,city street,b) blend,frustrated city street,0.05
+Frustrated,city street,c) split,frustrated city street,0.05
+Frustrated,flowers,a) emotion only,frustrated flowers,0.1
+Frustrated,flowers,b) blend,frustrated flowers,0.05
+Frustrated,flowers,c) split,frustrated flowers,0.0
+Frustrated,woman,a) emotion only,frustrated woman,0.1
+Frustrated,woman,b) blend,frustrated woman,0.15
+Frustrated,woman,c) split,frustrated woman,0.05
+Frustrated,mountains,a) emotion only,frustrated mountains,0.1
+Frustrated,mountains,b) blend,frustrated mountains,0.0
+Frustrated,mountains,c) split,frustrated mountains,0.0
+Frustrated,village,a) emotion only,frustrated village,0.1
+Frustrated,village,b) blend,frustrated village,0.0
+Frustrated,village,c) split,frustrated village,0.0
+Frustrated,horses,a) emotion only,frustrated horses,0.1
+Frustrated,horses,b) blend,frustrated horses,0.1
+Frustrated,horses,c) split,frustrated horses,0.0
+Frustrated,still life with fruit,a) emotion only,frustrated still life with fruit,0.1
+Frustrated,still life with fruit,b) blend,frustrated still life with fruit,0.0
+Frustrated,still life with fruit,c) split,frustrated still life with fruit,0.0
+Frustrated,abstract shapes,a) emotion only,frustrated abstract shapes,0.1
+Frustrated,abstract shapes,b) blend,frustrated abstract shapes,0.05
+Frustrated,abstract shapes,c) split,frustrated abstract shapes,0.0
+Happy,forest,a) emotion only,happy forest,0.1
+Happy,forest,b) blend,happy forest,0.0
+Happy,forest,c) split,happy forest,0.0
+Happy,sea,a) emotion only,happy sea,0.1
+Happy,sea,b) blend,happy sea,0.0
+Happy,sea,c) split,happy sea,0.0
+Happy,city street,a) emotion only,happy city street,0.1
+Happy,city street,b) blend,happy city street,0.05
+Happy,city street,c) split,happy city street,0.0
+Happy,flowers,a) emotion only,happy flowers,0.1
+Happy,flowers,b) blend,happy flowers,0.0
+Happy,flowers,c) split,happy flowers,0.0
+Happy,woman,a) emotion only,happy woman,0.1
+Happy,woman,b) blend,happy woman,0.05
+Happy,woman,c) split,happy woman,0.0
+Happy,mountains,a) emotion only,happy mountains,0.1
+Happy,mountains,b) blend,happy mountains,0.0
+Happy,mountains,c) split,happy mountains,0.0
+Happy,village,a) emotion only,happy village,0.1
+Happy,village,b) blend,happy village,0.05
+Happy,village,c) split,happy village,0.05
+Happy,horses,a) emotion only,happy horses,0.1
+Happy,horses,b) blend,happy horses,0.05
+Happy,horses,c) split,happy horses,0.05
+Happy,still life with fruit,a) emotion only,happy still life with fruit,0.1
+Happy,still life with fruit,b) blend,happy still life with fruit,0.0
+Happy,still life with fruit,c) split,happy still life with fruit,0.0
+Happy,abstract shapes,a) emotion only,happy abstract shapes,0.1
+Happy,abstract shapes,b) blend,happy abstract shapes,0.0
+Happy,abstract shapes,c) split,happy abstract shapes,0.0
+Annoyed,forest,a) emotion only,annoyed forest,0.05
+Annoyed,forest,b) blend,annoyed forest,0.0
+Annoyed,forest,c) split,annoyed forest,0.0
+Annoyed,sea,a) emotion only,annoyed sea,0.05
+Annoyed,sea,b) blend,annoyed sea,0.0
+Annoyed,sea,c) split,annoyed sea,0.0
+Annoyed,city street,a) emotion only,annoyed city street,0.05
+Annoyed,city street,b) blend,annoyed city street,0.1
+Annoyed,city street,c) split,annoyed city street,0.0
+Annoyed,flowers,a) emotion only,annoyed flowers,0.05
+Annoyed,flowers,b) blend,annoyed flowers,0.0
+Annoyed,flowers,c) split,annoyed flowers,0.0
+Annoyed,woman,a) emotion only,annoyed woman,0.05
+Annoyed,woman,b) blend,annoyed woman,0.0
+Annoyed,woman,c) split,annoyed woman,0.0
+Annoyed,mountains,a) emotion only,annoyed mountains,0.05
+Annoyed,mountains,b) blend,annoyed mountains,0.0
+Annoyed,mountains,c) split,annoyed mountains,0.0
+Annoyed,village,a) emotion only,annoyed village,0.05
+Annoyed,village,b) blend,annoyed village,0.0
+Annoyed,village,c) split,annoyed village,0.0
+Annoyed,horses,a) emotion only,annoyed horses,0.05
+Annoyed,horses,b) blend,annoyed horses,0.0
+Annoyed,horses,c) split,annoyed horses,0.0
+Annoyed,still life with fruit,a) emotion only,annoyed still life with fruit,0.05
+Annoyed,still life with fruit,b) blend,annoyed still life with fruit,0.0
+Annoyed,still life with fruit,c) split,annoyed still life with fruit,0.0
+Annoyed,abstract shapes,a) emotion only,annoyed abstract shapes,0.05
+Annoyed,abstract shapes,b) blend,annoyed abstract shapes,0.0
+Annoyed,abstract shapes,c) split,annoyed abstract shapes,0.0
+Bored,forest,a) emotion only,bored forest,0.0
+Bored,forest,b) blend,bored forest,0.0
+Bored,forest,c) split,bored forest,0.0
+Bored,sea,a) emotion only,bored sea,0.0
+Bored,sea,b) blend,bored sea,0.0
+Bored,sea,c) split,bored sea,0.0
+Bored,city street,a) emotion only,bored city street,0.0
+Bored,city street,b) blend,bored city street,0.05
+Bored,city street,c) split,bored city street,0.05
+Bored,flowers,a) emotion only,bored flowers,0.0
+Bored,flowers,b) blend,bored flowers,0.0
+Bored,flowers,c) split,bored flowers,0.0
+Bored,woman,a) emotion only,bored woman,0.0
+Bored,woman,b) blend,bored woman,0.0
+Bored,woman,c) split,bored woman,0.0
+Bored,mountains,a) emotion only,bored mountains,0.0
+Bored,mountains,b) blend,bored mountains,0.0
+Bored,mountains,c) split,bored mountains,0.0
+Bored,village,a) emotion only,bored village,0.0
+Bored,village,b) blend,bored village,0.0
+Bored,village,c) split,bored village,0.0
+Bored,horses,a) emotion only,bored horses,0.0
+Bored,horses,b) blend,bored horses,0.0
+Bored,horses,c) split,bored horses,0.0
+Bored,still life with fruit,a) emotion only,bored still life with fruit,0.0
+Bored,still life with fruit,b) blend,bored still life with fruit,0.0
+Bored,still life with fruit,c) split,bored still life with fruit,0.0
+Bored,abstract shapes,a) emotion only,bored abstract shapes,0.0
+Bored,abstract shapes,b) blend,bored abstract shapes,0.0
+Bored,abstract shapes,c) split,bored abstract shapes,0.0
+Aroused,forest,a) emotion only,aroused forest,0.05
+Aroused,forest,b) blend,aroused forest,0.0
+Aroused,forest,c) split,aroused forest,0.0
+Aroused,sea,a) emotion only,aroused sea,0.05
+Aroused,sea,b) blend,aroused sea,0.0
+Aroused,sea,c) split,aroused sea,0.0
+Aroused,city street,a) emotion only,aroused city street,0.05
+Aroused,city street,b) blend,aroused city street,0.0
+Aroused,city street,c) split,aroused city street,0.0
+Aroused,flowers,a) emotion only,aroused flowers,0.05
+Aroused,flowers,b) blend,aroused flowers,0.0
+Aroused,flowers,c) split,aroused flowers,0.0
+Aroused,woman,a) emotion only,aroused woman,0.05
+Aroused,woman,b) blend,aroused woman,0.0
+Aroused,woman,c) split,aroused woman,0.0
+Aroused,mountains,a) emotion only,aroused mountains,0.05
+Aroused,mountains,b) blend,aroused mountains,0.0
+Aroused,mountains,c) split,aroused mountains,0.0
+Aroused,village,a) emotion only,aroused village,0.05
+Aroused,village,b) blend,aroused village,0.0
+Aroused,village,c) split,aroused village,0.0
+Aroused,horses,a) emotion only,aroused horses,0.05
+Aroused,horses,b) blend,aroused horses,0.0
+Aroused,horses,c) split,aroused horses,0.0
+Aroused,still life with fruit,a) emotion only,aroused still life with fruit,0.05
+Aroused,still life with fruit,b) blend,aroused still life with fruit,0.0
+Aroused,still life with fruit,c) split,aroused still life with fruit,0.0
+Aroused,abstract shapes,a) emotion only,aroused abstract shapes,0.05
+Aroused,abstract shapes,b) blend,aroused abstract shapes,0.05
+Aroused,abstract shapes,c) split,aroused abstract shapes,0.0
+Tired,forest,a) emotion only,tired forest,0.0
+Tired,forest,b) blend,tired forest,0.0
+Tired,forest,c) split,tired forest,0.0
+Tired,sea,a) emotion only,tired sea,0.0
+Tired,sea,b) blend,tired sea,0.0
+Tired,sea,c) split,tired sea,0.0
+Tired,city street,a) emotion only,tired city street,0.0
+Tired,city street,b) blend,tired city street,0.0
+Tired,city street,c) split,tired city street,0.0
+Tired,flowers,a) emotion only,tired flowers,0.0
+Tired,flowers,b) blend,tired flowers,0.0
+Tired,flowers,c) split,tired flowers,0.0
+Tired,woman,a) emotion only,tired woman,0.0
+Tired,woman,b) blend,tired woman,0.0
+Tired,woman,c) split,tired woman,0.0
+Tired,mountains,a) emotion only,tired mountains,0.0
+Tired,mountains,b) blend,tired mountains,0.0
+Tired,mountains,c) split,tired mountains,0.0
+Tired,village,a) emotion only,tired village,0.0
+Tired,village,b) blend,tired village,0.0
+Tired,village,c) split,tired village,0.0
+Tired,horses,a) emotion only,tired horses,0.0
+Tired,horses,b) blend,tired horses,0.0
+Tired,horses,c) split,tired horses,0.0
+Tired,still life with fruit,a) emotion only,tired still life with fruit,0.0
+Tired,still life with fruit,b) blend,tired still life with fruit,0.0
+Tired,still life with fruit,c) split,tired still life with fruit,0.0
+Tired,abstract shapes,a) emotion only,tired abstract shapes,0.0
+Tired,abstract shapes,b) blend,tired abstract shapes,0.0
+Tired,abstract shapes,c) split,tired abstract shapes,0.0
+Glad,forest,a) emotion only,glad forest,0.0
+Glad,forest,b) blend,glad forest,0.0
+Glad,forest,c) split,glad forest,0.0
+Glad,sea,a) emotion only,glad sea,0.0
+Glad,sea,b) blend,glad sea,0.0
+Glad,sea,c) split,glad sea,0.0
+Glad,city street,a) emotion only,glad city street,0.0
+Glad,city street,b) blend,glad city street,0.0
+Glad,city street,c) split,glad city street,0.0
+Glad,flowers,a) emotion only,glad flowers,0.0
+Glad,flowers,b) blend,glad flowers,0.0
+Glad,flowers,c) split,glad flowers,0.0
+Glad,woman,a) emotion only,glad woman,0.0
+Glad,woman,b) blend,glad woman,0.0
+Glad,woman,c) split,glad woman,0.0
+Glad,mountains,a) emotion only,glad mountains,0.0
+Glad,mountains,b) blend,glad mountains,0.0
+Glad,mountains,c) split,glad mountains,0.0
+Glad,village,a) emotion only,glad village,0.0
+Glad,village,b) blend,glad village,0.05
+Glad,village,c) split,glad village,0.0
+Glad,horses,a) emotion only,glad horses,0.0
+Glad,horses,b) blend,glad horses,0.0
+Glad,horses,c) split,glad horses,0.0
+Glad,still life with fruit,a) emotion only,glad still life with fruit,0.0
+Glad,still life with fruit,b) blend,glad still life with fruit,0.0
+Glad,still life with fruit,c) split,glad still life with fruit,0.0
+Glad,abstract shapes,a) emotion only,glad abstract shapes,0.0
+Glad,abstract shapes,b) blend,glad abstract shapes,0.0
+Glad,abstract shapes,c) split,glad abstract shapes,0.0

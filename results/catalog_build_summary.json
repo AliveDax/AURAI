@@ -1,0 +1,40 @@
+{
+  "annotations": 5532,
+  "image_files_on_disk": 5543,
+  "unicode_duplicate_files_ignored": [
+    "C:/Users/ASUS/OneDrive/Desktop/clip_edwin/AURAI/AURAI-main/dataset/Images/Neo-Expressionism/0017438_ThiagoBoecan-Resignação.jpg",
+    "C:/Users/ASUS/OneDrive/Desktop/clip_edwin/AURAI/AURAI-main/dataset/Images/Neo-Pop Art/0036114_MichelMajerus-Tron4(grünPantone375).jpg",
+    "C:/Users/ASUS/OneDrive/Desktop/clip_edwin/AURAI/AURAI-main/dataset/Images/Symbolism/0009730_Luc-OlivierMerson-Projetd'illustrationpourMacbeth-lestroissorcières.jpg"
+  ],
+  "matched_by_method": {
+    "exact": 5532
+  },
+  "annotations_without_file": [],
+  "files_without_annotation": [
+    "Images/Baroque/0007081_FrancescoSolimena-Aurora,RomanGoddessoftheDawn,BidsGoodbyetoHerLoverTithonus.AuroraisabouttoIlluminatetheDar.jpg",
+    "Images/High Renaissance/0007698_LorenzoLotto-AltarpolyptychofSanBartolomeo,Bergamo,mainpanelEnthronedMadonnawithAngelsandSaints-AlexanderofB.jpg",
+    "Images/High Renaissance/0015541_LorenzoLotto-EnthronedMadonnawithAngelsandSaints,St.JosephandSt.Bernardontheleft,St.JohntheBaptistandSt.Anth.jpg",
+    "Images/Mannerism (Late Renaissance)/0007790_Francescode'Rossi(FrancescoSalviati),Cecchino-SubmissionofFrederickBarbarossabeforePopeAlexanderIIIduringthe.jpg",
+    "Images/Mannerism (Late Renaissance)/0013196_CarloUrbino-LuketheEvangelist.DetailfromtheCeilingoftheAltarChapelintheCappellaDiSant'aquilinointheBasilicaD.jpg",
+    "Images/Neo-Romanticism/0018115_EthelLéontineGabain-Thisoneofthethirty-onecampswhichhavebeenspeciallybuiltinthecountryandarenowhousingschool.jpg",
+    "Images/Ukiyo-e/0014824_Hiroshige-JapanesetriptychprintshowingJapaneseandforeignpeoplewalkingalongtheSumidaRiveramongcherrytreesinfu.jpg",
+    "Images/Ukiyo-e/0023527_TōshūsaiSharaku-MatsumotoKōshirōIVastheboatmanMinagawaShin'emonofReisengasakiinKamakura,actuallyHataRokurōza.jpg"
+  ],
+  "corrupt_images_skipped": [],
+  "catalog_rows": 5532,
+  "styles": 56,
+  "dominant_emotion_counts": {
+    "Calm": 2872,
+    "Excited": 1240,
+    "Contentment": 692,
+    "Sad": 216,
+    "Alarmed": 207,
+    "Frustrated": 157,
+    "Happy": 50,
+    "Annoyed": 28,
+    "Bored": 25,
+    "Aroused": 24,
+    "Tired": 19,
+    "Glad": 2
+  }
+}
