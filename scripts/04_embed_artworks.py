@@ -54,7 +54,8 @@ def main() -> None:
     meta_file.write_text(json.dumps(meta, indent=2))
 
     enc = ClipEncoder.from_config(cfg)
-    torch.cuda.reset_peak_memory_stats()
+    if torch.cuda.is_available():  # VRAM stats exist only on CUDA (not on a Mac's MPS)
+        torch.cuda.reset_peak_memory_stats()
     paths = [cfg.root / p for p in catalog["image_path"]]
     t0, n_new = time.perf_counter(), 0
     starts = range(0, len(paths), c["chunk_size"])
@@ -93,7 +94,8 @@ def main() -> None:
     summary = {"model": c["model"], "pretrained": c["pretrained"], "rows": len(emb), "dim": int(emb.shape[1]),
                "embedded_this_run": n_new, "seconds": round(seconds, 1),
                "img_per_s": round(n_new / seconds, 1) if n_new else None,
-               "peak_vram_gb": round(torch.cuda.max_memory_allocated() / 1024**3, 2),
+               "peak_vram_gb": (round(torch.cuda.max_memory_allocated() / 1024**3, 2)
+                                if torch.cuda.is_available() else None),
                "mean_cos_same_style": round(float(cos[same].mean()), 4),
                "mean_cos_different_style": round(float(cos[~same].mean()), 4),
                "cache_file": f"{cfg.paths['embeddings_dir']}/{emb_path.name}"}

@@ -6,3 +6,12 @@ __pycache__/
 *.pyc
 *.egg-info/
 .pytest_cache/
+.DS_Store
+
+# Data and caches from the earlier version, and per-machine files: not in git
+data/emoart/*
+!data/emoart/.gitkeep
+data/cache/*
+!data/cache/.gitkeep
+reports/*
+!reports/.gitkeep

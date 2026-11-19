@@ -99,6 +99,22 @@ Or from PowerShell:
 .\venv\Scripts\python.exe -m streamlit run app/streamlit_app.py   # basic web page in the browser
 ```
 
+### Phone app
+
+The same recommender as a mobile web app (`web/`), served by a small FastAPI server
+(`src/artrec/api.py`). The server only turns requests into `recommend()` calls, so the ranking is
+identical to the Streamlit page and the CLI. On the phone: take or choose room photos, tap a mood,
+type a subject, pick a colour, then get the ranked picks with each score's breakdown, "See it on
+my wall" (tap the wall; `wall_preview.py`) and Save (`result_sheet.py`).
+
+```bash
+.venv/bin/uvicorn artrec.api:app --host 0.0.0.0 --port 8000
+```
+
+Open `http://<this computer's IP>:8000` on a phone on the same Wi-Fi (it can be added to the home
+screen). On a Mac, CLIP runs on the Apple-silicon GPU (MPS) when there is no CUDA GPU; setup is the
+same with `.venv/bin/python` in place of `.\venv\Scripts\python.exe`.
+
 ### Emotion only (for the human check of CLIP's emotion matching)
 
 Double-click **`start_emotion_app.bat`**, type an emotion ("calm", "sad") and click Search. The
@@ -118,8 +134,10 @@ config.yaml          every tunable number
 main.py              CLI
 app/streamlit_app.py the whole UI (one basic page)
 app/emotion_app.py   emotion-only search, for the human emotion check
+web/                 the phone app (HTML/CSS/JS, installable), served by src/artrec/api.py
 src/artrec/          config, data_loader, clip_embed, color_extract, color_harmony,
-                     text_parse, scorer, recommend, wall_preview (artwork on the room photo)
+                     text_parse, scorer, recommend, wall_preview (artwork on the room photo),
+                     api (HTTP server for the phone app)
 data/                catalog.csv, rooms/, color_words.yaml, emotion_lexicon.yaml, emotion_paraphrases.yaml
 dataset/             EmoArt-5k (not in git, never modified)
 embeddings/          cached CLIP embeddings + palettes (not in git)

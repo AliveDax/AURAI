@@ -1,5 +1,6 @@
-# PyTorch is NOT listed here on purpose: it must be the CUDA build, installed first with
+# PyTorch is NOT listed here on purpose: on Windows it must be the CUDA build, installed first with
 #   .\venv\Scripts\python.exe -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# (on a Mac a plain `pip install torch torchvision` includes Apple-GPU (MPS) support)
 open_clip_torch
 pandas
 numpy
@@ -12,3 +13,8 @@ tqdm
 matplotlib
 pytest
 streamlit
+# phone app server (src/artrec/api.py)
+fastapi
+uvicorn[standard]
+python-multipart
+httpx

@@ -36,11 +36,14 @@ def set_seed(seed: int) -> None:
 
 
 def get_device(allow_cpu: bool = False):
-    """The GPU, or a loud error. The CPU is only used when the caller explicitly allows it, and
-    even then it is logged as a warning: never a silent fallback."""
+    """The GPU (NVIDIA CUDA, or Apple silicon's MPS on a Mac), or a loud error. The CPU is only
+    used when the caller explicitly allows it, and even then it is logged as a warning: never a
+    silent fallback."""
     import torch
     if torch.cuda.is_available():
         return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
     if allow_cpu:
         log.warning("NO CUDA GPU FOUND - running CLIP on the CPU. This will be very slow.")
         return torch.device("cpu")
