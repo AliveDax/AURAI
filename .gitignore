@@ -15,3 +15,6 @@ data/cache/*
 !data/cache/.gitkeep
 reports/*
 !reports/.gitkeep
+
+# The B.Tech report has the team's names and MIS numbers: kept out of git unless asked
+report/
